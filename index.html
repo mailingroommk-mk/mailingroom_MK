@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
     
-    <!-- Meta tag untuk mendukung instalasi PWA di Android dan Laptop (Hapus Address Bar) -->
+    <!-- Meta tag untuk mendukung instalasi PWA di Android dan Laptop -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#14161d">
@@ -37,6 +37,7 @@
         .page-title{font-size:20px;font-weight:700;color:#f8fafc;letter-spacing:-.3px;line-height:1.2}
         .page-subtitle{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;font-weight:500}
 
+        /* URL-bar disembunyikan agar tampilan bersih dan profesional */
         .url-bar{background:#14161d;border:1px solid #1f232e;border-radius:10px;padding:12px;gap:10px;display:flex;flex-wrap:wrap;align-items:center}
         .url-bar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6366f1;display:flex;align-items:center;gap:5px;white-space:nowrap}
         .url-row{flex:1;display:flex;gap:8px;min-width:0;width:100%}
@@ -54,13 +55,13 @@
             grid-template-columns: 1fr;
             gap: 12px;
         }
-        @media(min-width: 1024px) {
+        @media(min-width: 900px) {
             .dashboard-stats-grid {
-                grid-template-columns: 320px 1fr; /* Sisi kiri kartu mini, sisi kanan grafik lebar */
-                height: 190px; /* Batasi tinggi maksimum di laptop/PC agar seimbang dan rapi */
+                grid-template-columns: 320px 1fr;
+                height: 190px;
             }
             .metrics-sidebar, .sm-chart {
-                height: 100%; /* Paksa tinggi kontainer sejajar rata kanan-kiri */
+                height: 100%;
             }
         }
 
@@ -155,6 +156,15 @@
         
         .clear-date-btn{background:transparent;border:none;color:#64748b;cursor:pointer;font-size:13px;margin-left:4px;display:none;align-items:center;padding:0}
         .clear-date-btn:active{color:#ef4444}
+
+        /* Filter khusus No. Urut */
+        .no-filter-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 8px;height:34px;width:100px}
+        .no-filter-wrap i{color:#64748b;font-size:13px;margin-right:4px}
+        .no-filter-input{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;width:100%;outline:none}
+        .no-filter-input::placeholder{color:#475569}
+        .no-filter-input::-webkit-outer-spin-button,
+        .no-filter-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0 }
+
         .search-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 10px;height:34px;flex:1;min-width:140px}
         .search-wrap i{color:#64748b;font-size:14px;margin-right:6px;flex-shrink:0}
         .search-input{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;width:100%;outline:none;min-width:0}
@@ -167,15 +177,15 @@
         .rows-list-wrapper{width:100%;overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
         .rows-list{display:flex;flex-direction:column;gap:6px}
 
-        @media(min-width:1024px){
+        /* DIOPTIMALKAN: Batas breakpoint diturunkan ke 900px agar laptop standar mendapatkan tampilan horizontal yang rapi */
+        @media(min-width:900px){
             .rows-list{min-width:1800px}
             .doc-row{padding:12px 14px;flex-direction:row}
             .row-no{width:46px;flex-shrink:0}
             .row-middle{display:grid!important;gap:12px;margin-left:10px;align-items:start}
             .row-right{width:50px;margin-left:16px}
         }
-        @media(max-width:1023px){
-            /* Responsivitas untuk Android/Tablet */
+        @media(max-width:899px){
             .metrics-sidebar {
                 flex-direction: row;
                 display: grid;
@@ -309,7 +319,7 @@
             </div>
         </div>
 
-        <!-- Kolom URL disembunyikan agar tampilan bersih dan profesional -->
+        <!-- Kolom URL disembunyikan menggunakan style display none untuk tampilan bersih -->
         <div class="url-bar" style="display: none;">
             <div class="url-bar-label"><i class="ri-link"></i> URL</div>
             <div class="url-row">
@@ -380,18 +390,23 @@
                 <input type="date" id="endDate" class="date-input" onchange="handleDateChange()">
                 <button id="clearDate" class="clear-date-btn" onclick="clearDateFilter()"><i class="ri-close-circle-fill"></i></button>
             </div>
+
+            <!-- BARU: Filter Nomor Urut untuk mempermudah pencarian -->
+            <div class="no-filter-wrap">
+                <i class="ri-hashtag"></i>
+                <input type="number" id="noFilterInput" class="no-filter-input" placeholder="No. Urut..." oninput="renderRows()">
+            </div>
             
             <div class="search-wrap">
                 <i class="ri-search-line"></i>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari data..." oninput="renderRows()">
             </div>
-            <!-- Diubah agar tombol refresh manual memicu pemuatan visual langsung (false) -->
             <button class="refresh-btn" id="refreshBtn" onclick="fetchData(false)"><i class="ri-refresh-line"></i> Refresh</button>
         </div>
 
         <div class="rows-list-wrapper">
             <div class="rows-list" id="rows-container">
-                <div class="state-wrap"><i class="ri-link-unlink"></i><p>Masukkan URL Web App di atas untuk memulai.</p></div>
+                <div class="state-wrap"><i class="ri-link-unlink"></i><p>Menghubungkan ke server...</p></div>
             </div>
         </div>
     </div>
@@ -421,7 +436,7 @@
         </div>
         <div class="bb-right">
             <div class="bb-item" id="last-update"><i class="ri-time-line"></i> -</div>
-            <div class="bb-item">Manual Refresh</div>
+            <div class="bb-item">Auto Caching (Instan)</div>
         </div>
     </div>
 
@@ -430,7 +445,7 @@
     const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbyK6BObhUwxTge6MJBPVybhTl6poFWs0LgjyCUqzdSRrAhj14iLNB45cWIv97X2CK20/exec"; 
 
     let allData=[],allHeaders=[],currentFilter='all',isLoading=false;
-    let chartPoints=[]; // simpan posisi titik untuk tooltip
+    let chartPoints=[]; 
 
     // PWA Modal Trigger Toggle
     function toggleModal(e) {
@@ -443,7 +458,7 @@
     }
 
     // ═══════════════════════════════════════
-    // JAM
+    // JAM AKTIF
     // ═══════════════════════════════════════
     function updateClock(){
         document.getElementById('clock').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -451,7 +466,7 @@
     updateClock();setInterval(updateClock,1000);
 
     // ═══════════════════════════════════════
-    // FILTER
+    // FILTER UTAMA
     // ═══════════════════════════════════════
     document.querySelectorAll('.filter-btn').forEach(b=>{
         b.addEventListener('click',()=>{
@@ -476,7 +491,7 @@
     }
 
     // ═══════════════════════════════════════
-    // URL
+    // CACHING UTILS
     // ═══════════════════════════════════════
     function getSavedUrl() {
         return localStorage.getItem('mr_url') || DEFAULT_URL || '';
@@ -484,28 +499,26 @@
     function saveUrl(u){localStorage.setItem('mr_url',u);}
     function saveUrlAndLoad(){
         const u=document.getElementById('urlInput').value.trim();
-        if(!u){showState('warn','URL tidak boleh kosong.','Paste URL Web App dari Google Apps Script.');return;}
-        if(!u.startsWith('https://script.google.com/')){showState('error','URL tidak valid.','URL harus dimulai dengan:\n<span class="hl-g">https://script.google.com/macros/s/...</span>');return;}
+        if(!u){showState('warn','URL tidak boleh kosong.','Paste URL Web App.');return;}
         saveUrl(u);fetchData(false);
     }
 
     // ═══════════════════════════════════════
-    // FETCH (Dioptimasi agar mendukung mode silent)
+    // FETCH DATA DENGAN AUTO BACKGROUND SYNC (Anti-Lemot)
     // ═══════════════════════════════════════
     async function fetchData(silent = false){
         const url=getSavedUrl();
-        if(!url){showState('warn','URL belum dikonfigurasi.','Masukkan URL Web App di kolom URL di atas,\nlalu klik <span class="hl-g">Muat</span>.\n\n<span class="hl-d">Cara:\n1. Buka Apps Script\n2. Deploy → New Deployment\n3. Type: Web App\n4. Execute as: Me\n5. Who has access: Anyone\n6. Deploy → Grant Access\n7. Copy URL</span>');return;}
+        if(!url){showState('warn','URL belum dikonfigurasi.','Lakukan setup Web App URL pada Apps Script.');return;}
         if(isLoading)return;
         isLoading=true;
         const btn=document.getElementById('refreshBtn');
         btn.classList.add('loading');
         setConn('wait');
         
-        // Hanya tampilkan layar loading penuh jika TIDAK dalam mode silent
+        // Mode senyap tidak merusak user experience dengan spinner
         if(!silent){
-            showState('loading','Mengambil data...');
+            showState('loading','Mengambil data terbaru...');
         } else {
-            // Berikan indikator halus di pojok bawah bahwa data sedang disinkronkan di latar belakang
             document.getElementById('conn-status').innerHTML='<span class="conn-dot wait"></span> Menyinkronkan...';
         }
 
@@ -526,57 +539,62 @@
             if(parsed.length===0){
                 allData=[];allHeaders=[];setConn('on');
                 if(!silent) {
-                    showState('warn','Sheet kosong.','Sheet terhubung tapi tidak ada data baris.');
+                    showState('warn','Sheet kosong.','Tidak ada data yang ditemukan.');
                 }
                 drawEmptyChart();
             }else{
-                allHeaders=Object.keys(parsed[0]);allData=parsed;setConn('on');renderRows();
+                allHeaders=Object.keys(parsed[0]);
                 
-                // Simpan data terbaru ke cache lokal agar pembukaan berikutnya instan!
-                localStorage.setItem('mr_cached_data', JSON.stringify(allData));
-                localStorage.setItem('mr_cached_headers', JSON.stringify(allHeaders));
+                // BARU: Ikat nomor urut data sheet asli secara permanen pada memori
+                allData=parsed.map((row, idx) => {
+                    const noKey = Object.keys(row).find(k => {
+                        const l = k.toLowerCase().trim();
+                        return l === 'no' || l === 'nomor' || l === 'number' || l === 'no.';
+                    });
+                    row._permanentNo = noKey ? (parseInt(row[noKey]) || (idx + 1)) : (idx + 1);
+                    return row;
+                });
+
+                setConn('on');
+                renderRows();
+                
+                // Update Cache Lokal
+                localStorage.setItem('mr_cached_data_v2', JSON.stringify(allData));
+                localStorage.setItem('mr_cached_headers_v2', JSON.stringify(allHeaders));
             }
             document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
             document.getElementById('last-update').innerHTML='<i class="ri-time-line"></i> '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
         }catch(e){
             console.error(e);
-            // Hanya ganti tampilan layar utama jika tidak dalam mode silent atau cache lokal kosong
             if(!silent || !allData.length) {
                 let msg,detail;
                 if(e.message==='AUTH_REQUIRED'){
                     msg='Perlu otorisasi.';
-                    detail='<span class="hl-r">Google meminta otorisasi.</span>\n\n<span class="hl-b">CARA MEMPERBAIKI:</span>\n\n1. Buka script di script.google.com\n2. Deploy → New Deployment\n3. Type: <span class="hl-g">Web App</span>\n4. Execute as: <span class="hl-g">Me</span>\n5. Who has access: <span class="hl-g">Anyone</span>\n6. Deploy → <span class="hl-r">Klik "Grant Access"</span>\n7. Copy URL baru';
+                    detail='Otorisasikan script Anda terlebih dahulu.';
                     setConn('off');
-                }else if(e.message.startsWith('SCRIPT_ERROR:')){
-                    msg='Error dari Apps Script.';detail='<span class="hl-r">'+esc(e.message.replace('SCRIPT_ERROR: ',''))+'</span>';setConn('off');
-                }else if(e.message.startsWith('NOT_ARRAY:')){
-                    msg='Format data salah.';detail='Apps Script harus return array JSON.';setConn('off');
-                }else if(e.message.startsWith('INVALID_JSON:')){
-                    msg='Bukan JSON valid.';detail='Response: '+esc(e.message.replace('INVALID_JSON: ','').substring(0,200));setConn('off');
                 }else{
-                    msg='Gagal terhubung.';detail='<span class="hl-d">Kemungkinan:\n1. Tidak ada internet\n2. URL salah\n3. Perlu re-deploy script</span>\n\nURL: <span class="hl-g">'+esc(url)+'</span>';setConn('off');
+                    msg='Gagal terhubung.';
+                    detail='Gagal menarik database. Membuka versi offline...';
+                    setConn('off');
                 }
                 showState('error',msg,detail);
                 drawEmptyChart();
             } else {
-                // Jika sync background gagal tapi sudah ada data cache, biarkan data cache tetap tampil
                 setConn('off');
             }
         }finally{isLoading=false;btn.classList.remove('loading');}
     }
 
-    function setConn(s){const e=document.getElementById('conn-status');if(s==='on'){e.innerHTML='<span class="conn-dot on"></span> Connected';e.style.color='#10b981';}else if(s==='off'){e.innerHTML='<span class="conn-dot off"></span> Gagal';e.style.color='#ef4444';}else{e.innerHTML='<span class="conn-dot wait"></span> Loading...';e.style.color='#f59e0b';}}
+    function setConn(s){const e=document.getElementById('conn-status');if(s==='on'){e.innerHTML='<span class="conn-dot on"></span> Connected';e.style.color='#10b981';}else if(s==='off'){e.innerHTML='<span class="conn-dot off"></span> Offline Mode';e.style.color='#ef4444';}else{e.innerHTML='<span class="conn-dot wait"></span> Sync...';e.style.color='#f59e0b';}}
     function showState(t,m,d){const c=document.getElementById('rows-container');let i='ri-inbox-line',cl='';if(t==='loading')i='';if(t==='error'){i='ri-error-warning-line';cl=' error';}if(t==='warn'){i='ri-alert-line';cl=' warn';}let h='<div class="state-wrap'+cl+'">';if(t==='loading')h+='<div class="spinner"></div>';else h+='<i class="'+i+'"></i>';h+='<p>'+m+'</p>';if(d)h+='<div class="state-detail">'+d+'</div>';h+='</div>';c.innerHTML=h;}
     function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
     // ═══════════════════════════════════════
-    // CHART: 2-D Line, 10 Hari Terakhir
+    // CHART TREN (10 Hari Terakhir)
     // ═══════════════════════════════════════
     function getDateCounts(){
         const dk=findDateKey(allHeaders);
         const counts={};
-
-        // Inisialisasi 10 hari terakhir dengan 0
         const now=new Date();
         for(let i=9;i>=0;i--){
             const d=new Date(now);
@@ -584,19 +602,15 @@
             const key=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
             counts[key]=0;
         }
-
         if(!dk||!allData.length) return counts;
-
         allData.forEach(row=>{
             const val=row[dk];
             if(!val) return;
             const formatted=fmtDT(val,true);
-            // Cek apakah tanggal ini ada di range 10 hari
             Object.keys(counts).forEach(k=>{
                 if(formatted.includes(k)) counts[k]++;
             });
         });
-
         return counts;
     }
 
@@ -613,16 +627,12 @@
         const ctx=canvas.getContext('2d');
         ctx.scale(dpr,dpr);
         ctx.clearRect(0,0,w,h);
-
-        // Garis horizontal grid
         ctx.strokeStyle='rgba(31,35,46,.6)';
         ctx.lineWidth=1;
         for(let i=0;i<3;i++){
             const y=8+(h-16)*(i/2);
             ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
         }
-
-        // Teks kosong
         ctx.fillStyle='#334155';
         ctx.font='500 10px Inter';
         ctx.textAlign='center';
@@ -634,17 +644,14 @@
         const canvas=document.getElementById('trendChart');
         const wrap=document.getElementById('chartWrap');
         if(!canvas||!wrap) return;
-
         const counts=getDateCounts();
         const keys=Object.keys(counts);
         const values=Object.values(counts);
         const maxVal=Math.max(...values,1);
-
         const dpr=window.devicePixelRatio||1;
         const rect=wrap.getBoundingClientRect();
         const w=rect.width, h=rect.height;
         if(w<10||h<10) return;
-
         canvas.width=w*dpr; canvas.height=h*dpr;
         canvas.style.width=w+'px'; canvas.style.height=h+'px';
         const ctx=canvas.getContext('2d');
@@ -655,7 +662,6 @@
         const chartW=w-padL-padR;
         const chartH=h-padT-padB;
 
-        // Grid horizontal
         ctx.strokeStyle='rgba(31,35,46,.5)';
         ctx.lineWidth=.5;
         const gridLines=3;
@@ -664,7 +670,6 @@
             ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
         }
 
-        // Hitung posisi titik
         const step=chartW/(keys.length-1);
         chartPoints=[];
         const pts=keys.map((k,i)=>{
@@ -676,7 +681,6 @@
 
         if(pts.length<2){drawEmptyChart();return;}
 
-        // Gradient fill area bawah garis
         const grad=ctx.createLinearGradient(0,padT,0,padT+chartH);
         grad.addColorStop(0,'rgba(6,182,212,0.22)');
         grad.addColorStop(1,'rgba(6,182,212,0.0)');
@@ -700,7 +704,6 @@
         ctx.fillStyle=grad;
         ctx.fill();
 
-        // Garis utama
         ctx.beginPath();
         ctx.moveTo(pts[0].x,pts[0].y);
         for(let i=0;i<pts.length-1;i++){
@@ -720,10 +723,8 @@
         ctx.lineCap='round';
         ctx.stroke();
 
-        // Dots & Permanent Labels
         pts.forEach((p,i)=>{
             const isToday=i===pts.length-1;
-            // Glow untuk hari ini
             if(isToday){
                 ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);
                 ctx.fillStyle='rgba(6,182,212,0.2)';ctx.fill();
@@ -735,15 +736,12 @@
                 ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
                 ctx.fillStyle='#0b0c10';ctx.fill();
             }
-
-            // GAMBAR ANGKA SECARA PERMANEN DI ATAS TITIK
             ctx.fillStyle='#06b6d4';
             ctx.font='700 8px Inter';
             ctx.textAlign='center';
             ctx.fillText(p.val,p.x,p.y-8);
         });
 
-        // Label tanggal di bawah
         ctx.fillStyle='#475569';
         ctx.font='600 8px Inter';
         ctx.textAlign='center';
@@ -755,19 +753,17 @@
             ctx.fillText(label,padL+step*i,h-4);
         });
 
-        // Nilai max di atas
         ctx.fillStyle='rgba(6,182,212,0.6)';
         ctx.font='700 8px Inter';
         ctx.textAlign='left';
         ctx.fillText(maxVal,padL+2,padT-2);
     }
 
-    // Tooltip on hover/touch
+    // Tooltip Tracker
     (function(){
         const wrap=document.getElementById('chartWrap');
         const tip=document.getElementById('chartTooltip');
         if(!wrap||!tip) return;
-
         function showTip(cx,cy){
             if(!chartPoints.length) return;
             let closest=null,minDist=Infinity;
@@ -789,7 +785,6 @@
             tip.style.left=tx+'px';
             tip.style.top=ty+'px';
         }
-
         wrap.addEventListener('mousemove',e=>{
             const r=wrap.getBoundingClientRect();
             showTip(e.clientX-r.left,e.clientY-r.top);
@@ -802,7 +797,6 @@
         },{passive:true});
     })();
 
-    // Redraw chart saat resize
     let resizeTimer;
     window.addEventListener('resize',()=>{
         clearTimeout(resizeTimer);
@@ -810,7 +804,7 @@
     });
 
     // ═══════════════════════════════════════
-    // LOGIC
+    // PARSING LOGIC & HELPERS
     // ═══════════════════════════════════════
     function findSkip(h){return h.filter(x=>{const l=x.toLowerCase().trim();return l==='no'||l==='nomor'||l==='nmr'||l==='number'||l.includes('status');});}
     function findDateKey(h){const l=h.map(x=>x.toLowerCase().trim());return h.find((_,i)=>l[i]==='tgl diterima mailing'||l[i]==='tgl'||l[i]==='tanggal')||null;}
@@ -834,11 +828,7 @@
     }
 
     function mkDate(d,t){const cd=fmtDT(d,true),ct=fmtDT(t,false);if(cd==='-'||ct==='-')return null;const dp=cd.split('/'),tp=ct.split(':');if(dp.length!==3||tp.length<2)return null;return new Date(parseInt(dp[2],10),parseInt(dp[1],10)-1,parseInt(dp[0],10),parseInt(tp[0],10),parseInt(tp[1],10));}
-
     function dur(tm,wm,tu,wu){const s=mkDate(tm,wm),e=mkDate(tu,wu);if(!s||!e)return'-';let ms=e-s;if(ms<0)return'-';const min=Math.floor(ms/60000),h=Math.floor(min/60),m=min%60;return h>0?h+'j '+m+'m':m+'m';}
-
-    function toSheet(d){if(!d)return'';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';}
-
     function parseSheetDate(dStr) {
         if (!dStr || dStr === '-') return null;
         const parts = dStr.split('/');
@@ -847,16 +837,15 @@
     }
 
     function calcStats(rows){
-        const dk=findDateKey(allHeaders);let t=rows.length,p=0,d=0;
+        let t=rows.length,p=0,d=0;
         rows.forEach(r=>{if(getStatus(r)==='PENDING')p++;else d++;});
         anim('total',t);anim('pending',p);anim('diterima',d);
         drawChart();
     }
-
     function anim(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
 
     // ═══════════════════════════════════════
-    // RENDER
+    // RENDER TABEL & ATURAN FILTER PINTAR
     // ═══════════════════════════════════════
     function renderRows(){
         if(!allData.length||!allHeaders.length)return;
@@ -870,12 +859,17 @@
         if(endDate) endDate.setHours(23,59,59,999);
         
         const q=document.getElementById('searchInput').value.toLowerCase().trim();
+        const noQuery=document.getElementById('noFilterInput').value.trim();
         const dk=findDateKey(allHeaders);
 
+        // Filter Data Utama
         const filtered=allData.filter(row=>{
             if(currentFilter!=='all'&&getStatus(row)!==currentFilter)return false;
             
-            // Filter range tanggal (Mulai s/d Selesai)
+            // 1. FILTER NOMOR URUT PERMANEN (PRESISI)
+            if(noQuery && String(row._permanentNo) !== noQuery) return false;
+
+            // 2. Filter Tanggal
             if(dk && row[dk]) {
                 const rowDateStr = fmtDT(row[dk], true);
                 const rDate = parseSheetDate(rowDateStr);
@@ -889,9 +883,11 @@
                 return false;
             }
             
+            // 3. Filter Kata Kunci Global
             if(q&&!Object.values(row).some(v=>String(v||'').toLowerCase().includes(q)))return false;
             return true;
         });
+
         calcStats(filtered);
         if(!filtered.length){document.getElementById('rows-container').innerHTML='<div class="state-wrap"><i class="ri-filter-off-line"></i><p>Tidak ada data cocok.</p></div>';return;}
 
@@ -914,7 +910,9 @@
             const dr=dur(tMK?r[tMK]:'',wMK?r[wMK]:'',tUK?r[tUK]:'',wUK?r[wUK]:'');
 
             html+='<div class="doc-row '+sc+'" style="animation-delay:'+(i*0.008)+'s">';
-            html+='<div class="row-no"><span class="row-no-label">NO</span><span class="row-no-num">'+(i+1)+'</span></div>';
+            
+            // BARU: Nomor urut permanen sesuai urutan database asli
+            html+='<div class="row-no"><span class="row-no-label">NO</span><span class="row-no-num">'+r._permanentNo+'</span></div>';
             html+='<div class="row-middle" style="grid-template-columns:'+dCols.join(' ')+';">';
 
             midK.forEach(key=>{
@@ -946,33 +944,31 @@
     }
 
     // ═══════════════════════════════════════
-    // INIT (Inisialisasi Caching Instan)
+    // SINKRONISASI CACHE INSTAN (0 Detik Terbuka)
     // ═══════════════════════════════════════
     (function(){
         const u=getSavedUrl();
         if(u){
             document.getElementById('urlInput').value=u;
             
-            // Mencoba membaca data dari Cache Lokal browser terlebih dahulu
-            const cachedData = localStorage.getItem('mr_cached_data');
-            const cachedHeaders = localStorage.getItem('mr_cached_headers');
+            // Baca Cache agar database langsung tampil dalam 0 milidetik saat web dibuka
+            const cachedData = localStorage.getItem('mr_cached_data_v2');
+            const cachedHeaders = localStorage.getItem('mr_cached_headers_v2');
             
             if(cachedData && cachedHeaders) {
                 try {
-                    // Jika data cache ditemukan, langsung muat dalam 0 detik!
                     allData = JSON.parse(cachedData);
                     allHeaders = JSON.parse(cachedHeaders);
                     setConn('on');
                     renderRows();
                     document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
                     
-                    // Ambil data Google Sheets terbaru secara senyap di background tanpa mengganggu user
+                    // Lakukan sync pembaruan data secara senyap di background
                     fetchData(true); 
                 } catch(e) {
                     fetchData(false);
                 }
             } else {
-                // Jika tidak ada data cache, baru tampilkan loading penuh
                 fetchData(false);
             }
         } else {
