@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Mailing Room - Document Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Meta tag untuk mendukung instalasi PWA di Android dan Laptop (Hapus Address Bar) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#14161d">
+
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{-webkit-text-size-adjust:100%}
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0b0c10;color:#e2e8f0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+        .browser-bar{background:#14161d;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1f232e;flex-shrink:0}
+        .browser-dots{display:flex;gap:5px;flex-shrink:0}
+        .browser-dots span{width:10px;height:10px;border-radius:50%}
+        .browser-dots span:nth-child(1){background:#ff5f56}
+        .browser-dots span:nth-child(2){background:#ffbd2e}
+        .browser-dots span:nth-child(3){background:#27c93f}
+        .browser-tab{padding:5px 12px;font-size:11px;color:#62697a;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap}
+        .browser-tab.active{background:#1f232e;color:#f1f5f9}
+        .browser-address{flex:1;min-width:0;background:#0b0c10;border:1px solid #1f232e;border-radius:5px;padding:5px 10px;font-size:10px;color:#4b5263;display:flex;align-items:center;gap:6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+        .browser-address i{color:#27c93f;font-size:11px;flex-shrink:0}
+        
+        /* Tombol panduan instalasi PWA */
+        .pwa-btn{background:#10b981;border:none;color:#fff;padding:4px 8px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;margin-left:auto;transition:all 0.15s}
+        .pwa-btn:hover{background:#059669}
+
+        .main{flex:1;padding:16px;padding-bottom:24px;width:100%;display:flex;flex-direction:column;gap:16px}
+        .page-header{display:flex;justify-content:between;align-items:center;flex-wrap:wrap;gap:12px}
+        .page-title{font-size:20px;font-weight:700;color:#f8fafc;letter-spacing:-.3px;line-height:1.2}
+        .page-subtitle{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;font-weight:500}
+
+        .url-bar{background:#14161d;border:1px solid #1f232e;border-radius:10px;padding:12px;gap:10px;display:flex;flex-wrap:wrap;align-items:center}
+        .url-bar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6366f1;display:flex;align-items:center;gap:5px;white-space:nowrap}
+        .url-row{flex:1;display:flex;gap:8px;min-width:0;width:100%}
+        .url-input-wrap{flex:1;display:flex;align-items:center;background:#0b0c10;border:1px solid #1f232e;border-radius:6px;padding:0 10px;min-width:0;height:34px}
+        .url-input-wrap i{color:#64748b;font-size:13px;margin-right:6px;flex-shrink:0}
+        .url-input{flex:1;background:transparent;border:none;color:#e2e8f0;font-family:'SF Mono','Fira Code',monospace;font-size:10px;outline:none;min-width:0}
+        .url-input::placeholder{color:#334155}
+        .url-save-btn{background:#6366f1;border:none;color:#fff;padding:0 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;height:34px;display:flex;align-items:center;gap:5px;flex-shrink:0}
+        .url-save-btn:active{transform:scale(.96);background:#5558e6}
+        .url-hint{width:100%;font-size:9px;color:#475569;display:flex;align-items:flex-start;gap:4px;line-height:1.4}
+        .url-hint i{font-size:11px;color:#334155;flex-shrink:0;margin-top:1px}
+
+        .dashboard-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media(min-width: 1024px) {
+            .dashboard-stats-grid {
+                grid-template-columns: 320px 1fr; /* Sisi kiri kartu mini, sisi kanan grafik lebar */
+                height: 190px; /* Batasi tinggi maksimum di laptop/PC agar seimbang dan rapi */
+            }
+            .metrics-sidebar, .sm-chart {
+                height: 100%; /* Paksa tinggi kontainer sejajar rata kanan-kiri */
+            }
+        }
+
+        /* Sisi Kiri: Panel Kartu Mini Vertikal */
+        .metrics-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #14161d;
+            border: 1px solid #1f232e;
+            padding: 12px;
+            border-radius: 10px;
+            justify-content: center;
+        }
+        .metric-mini-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #0b0c10;
+            border: 1px solid #1f232e;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .metric-mini-card:hover {
+            border-color: #334155;
+            transform: translateX(3px);
+        }
+        .metric-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .metric-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .icon-total { background: rgba(99,102,241,0.1); color: #6366f1; border: 1px solid rgba(99,102,241,0.2); }
+        .icon-pending { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+        .icon-diterima { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+
+        .sm-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+        }
+        .sm-num {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .sm-num.c1{color:#6366f1}.sm-num.c2{color:#f59e0b}.sm-num.c3{color:#10b981}
+
+        /* Sisi Kanan: Grafik Lebar */
+        .sm-chart{
+            background: #14161d;
+            border: 1px solid #1f232e;
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            min-height: 154px;
+        }
+        .sm-chart-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#06b6d4;display:flex;align-items:center;gap:6px}
+        .sm-chart-label i{font-size:13px}
+        .chart-wrap{flex:1;position:relative;width:100%;min-height:90px}
+        .chart-wrap canvas{width:100%;height:100%;display:block}
+        .chart-tooltip{position:absolute;background:#1a1c24;border:1px solid #2d3348;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:600;color:#f1f5f9;pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+        .chart-tooltip.show{opacity:1}
+
+        .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .filter-group{display:flex;gap:4px}
+        .filter-btn{background:#14161d;border:1px solid #1f232e;color:#94a3b8;padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s;white-space:nowrap}
+        .filter-btn:active{transform:scale(.96)}
+        .filter-btn.active{background:#6366f1;border-color:#6366f1;color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.25)}
+        
+        .date-filter-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 8px;height:34px}
+        .date-filter-wrap i{color:#64748b;font-size:13px;margin-right:6px}
+        .date-input{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;outline:none;cursor:pointer;width:105px}
+        .date-input::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:pointer}
+        .date-separator{color:#475569;font-size:10px;font-weight:700;margin:0 4px;user-select:none;text-transform:uppercase}
+        
+        .clear-date-btn{background:transparent;border:none;color:#64748b;cursor:pointer;font-size:13px;margin-left:4px;display:none;align-items:center;padding:0}
+        .clear-date-btn:active{color:#ef4444}
+        .search-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 10px;height:34px;flex:1;min-width:140px}
+        .search-wrap i{color:#64748b;font-size:14px;margin-right:6px;flex-shrink:0}
+        .search-input{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;width:100%;outline:none;min-width:0}
+        .search-input::placeholder{color:#475569}
+        .refresh-btn{background:#6366f1;border:none;color:#fff;padding:7px 18px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:6px;height:34px;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 8px rgba(99,102,241,.2)}
+        .refresh-btn:active{transform:scale(.96);background:#5558e6}
+        .refresh-btn.loading{pointer-events:none;opacity:.6}
+        .refresh-btn.loading i{animation:spin .6s linear infinite}
+
+        .rows-list-wrapper{width:100%;overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
+        .rows-list{display:flex;flex-direction:column;gap:6px}
+
+        @media(min-width:1024px){
+            .rows-list{min-width:1800px}
+            .doc-row{padding:12px 14px;flex-direction:row}
+            .row-no{width:46px;flex-shrink:0}
+            .row-middle{display:grid!important;gap:12px;margin-left:10px;align-items:start}
+            .row-right{width:50px;margin-left:16px}
+        }
+        @media(max-width:1023px){
+            /* Responsivitas untuk Android/Tablet */
+            .metrics-sidebar {
+                flex-direction: row;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                padding: 8px;
+            }
+            .metric-mini-card {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 8px 4px;
+                text-align: center;
+            }
+            .metric-info {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .metric-icon-wrap {
+                width: 26px;
+                height: 26px;
+                font-size: 13px;
+            }
+            .sm-num {
+                font-size: 16px;
+            }
+
+            .doc-row{padding:12px;flex-direction:column;align-items:stretch}
+            .doc-row .row-no{flex-direction:row;gap:8px;width:100%;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1f232e}
+            .doc-row .row-no-num{font-size:16px}
+            .doc-row .row-middle{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px 12px;margin-left:0;width:100%}
+            .doc-row .row-info-block.text-align-center{text-align:left!important}
+            .doc-row .row-right{width:100%;margin-left:0;margin-top:8px;padding-top:8px;border-top:1px dashed #1f232e;justify-content:flex-start;gap:10px;align-items:center}
+            .doc-row .row-right .badge-icon{width:28px;height:28px;font-size:15px}
+            .doc-row .row-right .mobile-durasi{display:flex!important}
+        }
+        @media(max-width:480px){
+            .doc-row .row-middle{grid-template-columns:1fr!important}
+            .page-title{font-size:18px}
+        }
+
+        .doc-row{background:#14161d;border:1px solid #1f232e;border-radius:8px;display:flex;position:relative;overflow:hidden;transition:all .15s;animation:rowIn .3s ease both}
+        .doc-row:active{transform:scale(.995)}
+        @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .doc-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+        .doc-row.st-diterima::before{background:#10b981}
+        .doc-row.st-pending::before{background:#ef4444}
+        .doc-row.st-diterima{background:rgba(16,185,129,.02);border-color:rgba(16,185,129,.1)}
+        .doc-row.st-pending{background:rgba(239,68,68,.02);border-color:rgba(239,68,68,.1)}
+        .doc-row.st-diterima .row-no-num{color:#10b981}
+        .doc-row.st-pending .row-no-num{color:#ef4444}
+
+        .row-no{display:flex;flex-direction:column;gap:1px;flex-shrink:0}
+        .row-no-label{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:#475569;font-weight:700}
+        .row-no-num{font-size:13px;font-weight:700;color:#64748b}
+        .row-info-block{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .row-info-block.text-align-center{text-align:center}
+        .row-info-label{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:600;line-height:1.3;white-space:normal;overflow-wrap:break-word}
+        .row-info-value{font-size:12px;color:#e2e8f0;font-weight:500;white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.35}
+        .badge-icon{font-size:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0}
+        .badge-icon-diterima{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2)}
+        .badge-icon-pending{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+        .mobile-durasi{display:none;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#f59e0b}
+        .mobile-durasi i{font-size:13px;color:#6366f1}
+
+        .state-wrap{padding:40px 16px;text-align:center;color:#475569;width:100%}
+        .state-wrap i{font-size:36px;display:block;margin-bottom:10px;color:#334155}
+        .state-wrap p{font-size:13px;font-weight:500;line-height:1.5}
+        .state-wrap .state-detail{font-size:11px;color:#94a3b8;margin-top:14px;max-width:600px;margin-left:auto;margin-right:auto;text-align:left;background:#14161d;padding:14px;border-radius:8px;border:1px solid #1f232e;font-family:'SF Mono','Fira Code',monospace;line-height:1.7;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+        .state-wrap .hl-r{color:#ef4444;font-weight:700}
+        .state-wrap .hl-g{color:#10b981;font-weight:700}
+        .state-wrap .hl-b{color:#6366f1;font-weight:700}
+        .state-wrap .hl-d{color:#475569}
+        .state-wrap.error i{color:#ef4444}
+        .state-wrap.warn i{color:#f59e0b}
+        .spinner{width:30px;height:30px;border:3px solid #1f232e;border-top-color:#6366f1;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+
+        .bottom-bar{background:#14161d;border-top:1px solid #1f232e;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#475569;margin-top:auto;font-weight:500;flex-wrap:wrap;gap:6px;flex-shrink:0}
+        .bb-left,.bb-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        .bb-item{display:flex;align-items:center;gap:4px;white-space:nowrap}
+        .bb-item i{font-size:12px;color:#334155}
+        .conn-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px}
+        .conn-dot.on{background:#10b981;box-shadow:0 0 5px rgba(16,185,129,.5)}
+        .conn-dot.off{background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.5)}
+        .conn-dot.wait{background:#f59e0b;box-shadow:0 0 5px rgba(245,158,11,.5);animation:pulse 1.5s ease infinite}
+
+        .rows-list-wrapper::-webkit-scrollbar{height:6px;width:6px}
+        .rows-list-wrapper::-webkit-scrollbar-track{background:#0b0c10}
+        .rows-list-wrapper::-webkit-scrollbar-thumb{background:#1f232e;border-radius:3px}
+        .state-wrap .state-detail::-webkit-scrollbar{width:4px}
+        .state-wrap .state-detail::-webkit-scrollbar-thumb{background:#1f232e;border-radius:2px}
+
+        /* Modal Panduan Instalasi */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+        .modal-box{background:#14161d;border:1px solid #1f232e;border-radius:12px;padding:20px;max-width:500px;width:100%;animation:modalIn 0.2s ease-out}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid #1f232e;padding-bottom:10px}
+        .modal-title{font-size:14px;font-weight:700;color:#f8fafc;display:flex;align-items:center;gap:6px}
+        .modal-close{background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer}
+        .modal-body{font-size:12px;color:#94a3b8;line-height:1.6}
+        .modal-body ol{margin-left:16px;margin-top:8px}
+        .modal-body li{margin-bottom:8px}
+        .hl-g{color:#10b981;font-weight:600}
+
+        @keyframes modalIn{from{transform:scale(0.95);opacity:0}to{transform:scale(1);opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+        @supports(padding:max(0px)){
+            .bottom-bar{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+            .main{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+        }
+    </style>
+</head>
+<body>
+
+    <div class="browser-bar">
+        <div class="browser-dots"><span></span><span></span><span></span></div>
+        <div class="browser-tab active"><i class="ri-mail-line" style="font-size:13px"></i> Mailing Room</div>
+        <div class="browser-address">
+            <i class="ri-lock-line"></i> https://mailing-room.firebaseapp.com
+        </div>
+        <button class="pwa-btn" id="installBtn" onclick="toggleModal()"><i class="ri-download-cloud-line"></i> Install App</button>
+    </div>
+
+    <div class="main">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Mailing Room - Document Control</div>
+                <div class="page-subtitle" style="margin-top:4px"><i class="ri-calendar-line"></i> <span id="clock"></span></div>
+            </div>
+        </div>
+
+        <div class="url-bar">
+            <div class="url-bar-label"><i class="ri-link"></i> URL</div>
+            <div class="url-row">
+                <div class="url-input-wrap">
+                    <i class="ri-global-line"></i>
+                    <input type="text" id="urlInput" class="url-input" placeholder="https://script.google.com/macros/s/xxxxx/exec" spellcheck="false" autocomplete="off">
+                </div>
+                <button class="url-save-btn" onclick="saveUrlAndLoad()"><i class="ri-save-line"></i> Muat</button>
+            </div>
+            <div class="url-hint"><i class="ri-information-line"></i> Paste URL Web App dari Apps Script → Deploy → Web App</div>
+        </div>
+
+        <div class="dashboard-stats-grid">
+            <!-- Sisi Kiri: Panel Kartu Mini Vertikal -->
+            <div class="metrics-sidebar">
+                <div class="metric-mini-card">
+                    <div class="metric-info">
+                        <div class="metric-icon-wrap icon-total">
+                            <i class="ri-folder-open-line"></i>
+                        </div>
+                        <span class="sm-label">Total</span>
+                    </div>
+                    <span class="sm-num c1" id="total">0</span>
+                </div>
+                
+                <div class="metric-mini-card">
+                    <div class="metric-info">
+                        <div class="metric-icon-wrap icon-pending">
+                            <i class="ri-time-line"></i>
+                        </div>
+                        <span class="sm-label">Pending</span>
+                    </div>
+                    <span class="sm-num c2" id="pending">0</span>
+                </div>
+
+                <div class="metric-mini-card">
+                    <div class="metric-info">
+                        <div class="metric-icon-wrap icon-diterima">
+                            <i class="ri-checkbox-circle-line"></i>
+                        </div>
+                        <span class="sm-label">Diterima</span>
+                    </div>
+                    <span class="sm-num c3" id="diterima">0</span>
+                </div>
+            </div>
+
+            <!-- Sisi Kanan: Grafik Lebar -->
+            <div class="sm-chart" id="chartCard">
+                <div class="sm-chart-label"><i class="ri-line-chart-line"></i> Grafik Tren (10 Hari Terakhir)</div>
+                <div class="chart-wrap" id="chartWrap">
+                    <canvas id="trendChart"></canvas>
+                    <div class="chart-tooltip" id="chartTooltip"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">Semua</button>
+                <button class="filter-btn" data-filter="DITERIMA">Diterima</button>
+                <button class="filter-btn" data-filter="PENDING">Pending</button>
+            </div>
+            
+            <div class="date-filter-wrap">
+                <i class="ri-calendar-event-line"></i>
+                <input type="date" id="startDate" class="date-input" onchange="handleDateChange()">
+                <span class="date-separator">s/d</span>
+                <input type="date" id="endDate" class="date-input" onchange="handleDateChange()">
+                <button id="clearDate" class="clear-date-btn" onclick="clearDateFilter()"><i class="ri-close-circle-fill"></i></button>
+            </div>
+            
+            <div class="search-wrap">
+                <i class="ri-search-line"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari data..." oninput="renderRows()">
+            </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="fetchData()"><i class="ri-refresh-line"></i> Refresh</button>
+        </div>
+
+        <div class="rows-list-wrapper">
+            <div class="rows-list" id="rows-container">
+                <div class="state-wrap"><i class="ri-link-unlink"></i><p>Masukkan URL Web App di atas untuk memulai.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Installation Instructions Modal -->
+    <div class="modal-overlay" id="pwaModal" onclick="toggleModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title"><i class="ri-smartphone-line"></i> Cara Install Tanpa Tampilan URL</div>
+                <button class="modal-close" onclick="toggleModal()"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Web app ini sudah mendukung fitur <span class="hl-g">PWA (Progressive Web App)</span>. Setelah di-upload ke server hosting, Anda bisa membukanya seperti aplikasi HP/Desktop bawaan:</p>
+                <ol>
+                    <li><strong>Di Android (Chrome):</strong> Klik ikon titik tiga di kanan atas Chrome, pilih <span class="hl-g">"Tambahkan ke Layar Utama"</span> atau <span class="hl-g">"Instal Aplikasi"</span>.</li>
+                    <li><strong>Di Laptop (Chrome/Edge):</strong> Klik ikon komputer kecil dengan tanda panah ke bawah yang muncul di sisi kanan kolom alamat URL browser Anda, lalu pilih <span class="hl-g">"Instal"</span>.</li>
+                    <li>Aplikasi akan terpasang di menu utama Android / Desktop Anda. Saat dibuka, aplikasi akan berjalan <span class="hl-g">layar penuh (Standalone) tanpa bar URL browser sama sekali!</span></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="bb-left">
+            <div class="bb-item" id="conn-status"><span class="conn-dot off"></span> Belum dikonfigurasi</div>
+            <div class="bb-item" id="col-count"><i class="ri-table-line"></i> -</div>
+        </div>
+        <div class="bb-right">
+            <div class="bb-item" id="last-update"><i class="ri-time-line"></i> -</div>
+            <div class="bb-item">Manual Refresh</div>
+        </div>
+    </div>
+
+<script>
+    // === !!! TULIS URL APPS SCRIPT ANDA DI SINI UNTUK RILIS PRODUKSI !!! ===
+    // Contoh: const DEFAULT_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+    const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbyK6BObhUwxTge6MJBPVybhTl6poFWs0LgjyCUqzdSRrAhj14iLNB45cWIv97X2CK20/exec"; 
+
+    let allData=[],allHeaders=[],currentFilter='all',isLoading=false;
+    let chartPoints=[]; // simpan posisi titik untuk tooltip
+
+    // PWA Modal Trigger Toggle
+    function toggleModal(e) {
+        const modal = document.getElementById('pwaModal');
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
+            modal.style.display = 'flex';
+        }
+    }
+
+    // ═══════════════════════════════════════
+    // JAM
+    // ═══════════════════════════════════════
+    function updateClock(){
+        document.getElementById('clock').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
+    updateClock();setInterval(updateClock,1000);
+
+    // ═══════════════════════════════════════
+    // FILTER
+    // ═══════════════════════════════════════
+    document.querySelectorAll('.filter-btn').forEach(b=>{
+        b.addEventListener('click',()=>{
+            document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+            b.classList.add('active');
+            currentFilter=b.dataset.filter;
+            renderRows();
+        });
+    });
+    
+    function handleDateChange(){
+        const hasVal = document.getElementById('startDate').value || document.getElementById('endDate').value;
+        document.getElementById('clearDate').style.display = hasVal ? 'flex' : 'none';
+        renderRows();
+    }
+    
+    function clearDateFilter(){
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('clearDate').style.display = 'none';
+        renderRows();
+    }
+
+    // ═══════════════════════════════════════
+    // URL
+    // ═══════════════════════════════════════
+    function getSavedUrl() {
+        // Mendahulukan URL yang disimpan lokal, jika tidak ada, gunakan default_url
+        return localStorage.getItem('mr_url') || DEFAULT_URL || '';
+    }
+    function saveUrl(u){localStorage.setItem('mr_url',u);}
+    function saveUrlAndLoad(){
+        const u=document.getElementById('urlInput').value.trim();
+        if(!u){showState('warn','URL tidak boleh kosong.','Paste URL Web App dari Google Apps Script.');return;}
+        if(!u.startsWith('https://script.google.com/')){showState('error','URL tidak valid.','URL harus dimulai dengan:\n<span class="hl-g">https://script.google.com/macros/s/...</span>');return;}
+        saveUrl(u);fetchData();
+    }
+
+    // ═══════════════════════════════════════
+    // FETCH
+    // ═══════════════════════════════════════
+    async function fetchData(){
+        const url=getSavedUrl();
+        if(!url){showState('warn','URL belum dikonfigurasi.','Masukkan URL Web App di kolom URL di atas,\nlalu klik <span class="hl-g">Muat</span>.\n\n<span class="hl-d">Cara:\n1. Buka Apps Script\n2. Deploy → New Deployment\n3. Type: Web App\n4. Execute as: Me\n5. Who has access: Anyone\n6. Deploy → Grant Access\n7. Copy URL</span>');return;}
+        if(isLoading)return;
+        isLoading=true;
+        const btn=document.getElementById('refreshBtn');
+        btn.classList.add('loading');
+        setConn('wait');
+        showState('loading','Mengambil data...');
+
+        try{
+            const r=await fetch(url,{method:'GET',redirect:'follow',headers:{'Accept':'application/json'}});
+            if(!r.ok)throw new Error('HTTP '+r.status);
+            const txt=await r.text();
+            if(txt.trim().startsWith('<!')||txt.trim().startsWith('<html'))throw new Error('AUTH_REQUIRED');
+            let parsed;
+            try{parsed=JSON.parse(txt);}catch(e){throw new Error('INVALID_JSON: '+txt.substring(0,200));}
+            if(parsed&&parsed.error)throw new Error('SCRIPT_ERROR: '+parsed.error);
+            if(!Array.isArray(parsed)){
+                for(const k of['data','rows','items','records']){
+                    if(parsed[k]&&Array.isArray(parsed[k])){parsed=parsed[k];break;}
+                }
+                if(!Array.isArray(parsed))throw new Error('NOT_ARRAY: Type='+typeof parsed);
+            }
+            if(parsed.length===0){
+                allData=[];allHeaders=[];setConn('on');
+                showState('warn','Sheet kosong.','Sheet terhubung tapi tidak ada data baris.');
+                drawEmptyChart();
+            }else{
+                allHeaders=Object.keys(parsed[0]);allData=parsed;setConn('on');renderRows();
+            }
+            document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
+            document.getElementById('last-update').innerHTML='<i class="ri-time-line"></i> '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        }catch(e){
+            console.error(e);
+            let msg,detail;
+            if(e.message==='AUTH_REQUIRED'){
+                msg='Perlu otorisasi.';
+                detail='<span class="hl-r">Google meminta otorisasi.</span>\n\n<span class="hl-b">CARA MEMPERBAIKI:</span>\n\n1. Buka script di script.google.com\n2. Deploy → New Deployment\n3. Type: <span class="hl-g">Web App</span>\n4. Execute as: <span class="hl-g">Me</span>\n5. Who has access: <span class="hl-g">Anyone</span>\n6. Deploy → <span class="hl-r">Klik "Grant Access"</span>\n7. Copy URL baru';
+                setConn('off');
+            }else if(e.message.startsWith('SCRIPT_ERROR:')){
+                msg='Error dari Apps Script.';detail='<span class="hl-r">'+esc(e.message.replace('SCRIPT_ERROR: ',''))+'</span>';setConn('off');
+            }else if(e.message.startsWith('NOT_ARRAY:')){
+                msg='Format data salah.';detail='Apps Script harus return array JSON.';setConn('off');
+            }else if(e.message.startsWith('INVALID_JSON:')){
+                msg='Bukan JSON valid.';detail='Response: '+esc(e.message.replace('INVALID_JSON: ','').substring(0,200));setConn('off');
+            }else{
+                msg='Gagal terhubung.';detail='<span class="hl-d">Kemungkinan:\n1. Tidak ada internet\n2. URL salah\n3. Perlu re-deploy script</span>\n\nURL: <span class="hl-g">'+esc(url)+'</span>';setConn('off');
+            }
+            showState('error',msg,detail);
+            drawEmptyChart();
+        }finally{isLoading=false;btn.classList.remove('loading');}
+    }
+
+    function setConn(s){const e=document.getElementById('conn-status');if(s==='on'){e.innerHTML='<span class="conn-dot on"></span> Connected';e.style.color='#10b981';}else if(s==='off'){e.innerHTML='<span class="conn-dot off"></span> Gagal';e.style.color='#ef4444';}else{e.innerHTML='<span class="conn-dot wait"></span> Loading...';e.style.color='#f59e0b';}}
+    function showState(t,m,d){const c=document.getElementById('rows-container');let i='ri-inbox-line',cl='';if(t==='loading')i='';if(t==='error'){i='ri-error-warning-line';cl=' error';}if(t==='warn'){i='ri-alert-line';cl=' warn';}let h='<div class="state-wrap'+cl+'">';if(t==='loading')h+='<div class="spinner"></div>';else h+='<i class="'+i+'"></i>';h+='<p>'+m+'</p>';if(d)h+='<div class="state-detail">'+d+'</div>';h+='</div>';c.innerHTML=h;}
+    function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+    // ═══════════════════════════════════════
+    // CHART: 2-D Line, 10 Hari Terakhir
+    // ═══════════════════════════════════════
+    function getDateCounts(){
+        const dk=findDateKey(allHeaders);
+        const counts={};
+
+        // Inisialisasi 10 hari terakhir dengan 0
+        const now=new Date();
+        for(let i=9;i>=0;i--){
+            const d=new Date(now);
+            d.setDate(d.getDate()-i);
+            const key=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+            counts[key]=0;
+        }
+
+        if(!dk||!allData.length) return counts;
+
+        allData.forEach(row=>{
+            const val=row[dk];
+            if(!val) return;
+            const formatted=fmtDT(val,true);
+            // Cek apakah tanggal ini ada di range 10 hari
+            Object.keys(counts).forEach(k=>{
+                if(formatted.includes(k)) counts[k]++;
+            });
+        });
+
+        return counts;
+    }
+
+    function drawEmptyChart(){
+        const canvas=document.getElementById('trendChart');
+        const wrap=document.getElementById('chartWrap');
+        if(!canvas||!wrap) return;
+        const dpr=window.devicePixelRatio||1;
+        const rect=wrap.getBoundingClientRect();
+        const w=rect.width, h=rect.height;
+        if(w<10||h<10) return;
+        canvas.width=w*dpr; canvas.height=h*dpr;
+        canvas.style.width=w+'px'; canvas.style.height=h+'px';
+        const ctx=canvas.getContext('2d');
+        ctx.scale(dpr,dpr);
+        ctx.clearRect(0,0,w,h);
+
+        // Garis horizontal grid
+        ctx.strokeStyle='rgba(31,35,46,.6)';
+        ctx.lineWidth=1;
+        for(let i=0;i<3;i++){
+            const y=8+(h-16)*(i/2);
+            ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();
+        }
+
+        // Teks kosong
+        ctx.fillStyle='#334155';
+        ctx.font='500 10px Inter';
+        ctx.textAlign='center';
+        ctx.fillText('Belum ada data grafik',w/2,h/2+3);
+        chartPoints=[];
+    }
+
+    function drawChart(){
+        const canvas=document.getElementById('trendChart');
+        const wrap=document.getElementById('chartWrap');
+        if(!canvas||!wrap) return;
+
+        const counts=getDateCounts();
+        const keys=Object.keys(counts);
+        const values=Object.values(counts);
+        const maxVal=Math.max(...values,1);
+
+        const dpr=window.devicePixelRatio||1;
+        const rect=wrap.getBoundingClientRect();
+        const w=rect.width, h=rect.height;
+        if(w<10||h<10) return;
+
+        canvas.width=w*dpr; canvas.height=h*dpr;
+        canvas.style.width=w+'px'; canvas.style.height=h+'px';
+        const ctx=canvas.getContext('2d');
+        ctx.scale(dpr,dpr);
+        ctx.clearRect(0,0,w,h);
+
+        const padL=15, padR=15, padT=26, padB=22;
+        const chartW=w-padL-padR;
+        const chartH=h-padT-padB;
+
+        // Grid horizontal
+        ctx.strokeStyle='rgba(31,35,46,.5)';
+        ctx.lineWidth=.5;
+        const gridLines=3;
+        for(let i=0;i<=gridLines;i++){
+            const y=padT+chartH*(i/gridLines);
+            ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(w-padR,y);ctx.stroke();
+        }
+
+        // Hitung posisi titik
+        const step=chartW/(keys.length-1);
+        chartPoints=[];
+        const pts=keys.map((k,i)=>{
+            const x=padL+step*i;
+            const y=padT+chartH-(values[i]/maxVal)*chartH;
+            chartPoints.push({x,y,val:values[i],label:k});
+            return{x,y,val:values[i]}; 
+        });
+
+        if(pts.length<2){drawEmptyChart();return;}
+
+        // Gradient fill area bawah garis
+        const grad=ctx.createLinearGradient(0,padT,0,padT+chartH);
+        grad.addColorStop(0,'rgba(6,182,212,0.22)');
+        grad.addColorStop(1,'rgba(6,182,212,0.0)');
+
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x,padT+chartH);
+        ctx.lineTo(pts[0].x,pts[0].y);
+        for(let i=0;i<pts.length-1;i++){
+            const p0=pts[Math.max(0,i-1)];
+            const p1=pts[i];
+            const p2=pts[i+1];
+            const p3=pts[Math.min(pts.length-1,i+2)];
+            const cp1x=p1.x+(p2.x-p0.x)/6;
+            const cp1y=p1.y+(p2.y-p0.y)/6;
+            const cp2x=p2.x-(p3.x-p1.x)/6;
+            const cp2y=p2.y-(p3.y-p1.y)/6;
+            ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,p2.x,p2.y);
+        }
+        ctx.lineTo(pts[pts.length-1].x,padT+chartH);
+        ctx.closePath();
+        ctx.fillStyle=grad;
+        ctx.fill();
+
+        // Garis utama
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x,pts[0].y);
+        for(let i=0;i<pts.length-1;i++){
+            const p0=pts[Math.max(0,i-1)];
+            const p1=pts[i];
+            const p2=pts[i+1];
+            const p3=pts[Math.min(pts.length-1,i+2)];
+            const cp1x=p1.x+(p2.x-p0.x)/6;
+            const cp1y=p1.y+(p2.y-p0.y)/6;
+            const cp2x=p2.x-(p3.x-p1.x)/6;
+            const cp2y=p2.y-(p3.y-p1.y)/6;
+            ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,p2.x,p2.y);
+        }
+        ctx.strokeStyle='#06b6d4';
+        ctx.lineWidth=2.5;
+        ctx.lineJoin='round';
+        ctx.lineCap='round';
+        ctx.stroke();
+
+        // Dots & Permanent Labels
+        pts.forEach((p,i)=>{
+            const isToday=i===pts.length-1;
+            // Glow untuk hari ini
+            if(isToday){
+                ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);
+                ctx.fillStyle='rgba(6,182,212,0.2)';ctx.fill();
+            }
+            ctx.beginPath();ctx.arc(p.x,p.y,isToday?4:2.5,0,Math.PI*2);
+            ctx.fillStyle=isToday?'#06b6d4':'rgba(6,182,212,0.85)';
+            ctx.fill();
+            if(isToday){
+                ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
+                ctx.fillStyle='#0b0c10';ctx.fill();
+            }
+
+            // GAMBAR ANGKA SECARA PERMANEN DI ATAS TITIK
+            ctx.fillStyle='#06b6d4';
+            ctx.font='700 8px Inter';
+            ctx.textAlign='center';
+            ctx.fillText(p.val,p.x,p.y-8);
+        });
+
+        // Label tanggal di bawah
+        ctx.fillStyle='#475569';
+        ctx.font='600 8px Inter';
+        ctx.textAlign='center';
+        const showEvery=keys.length<=6?1:2;
+        keys.forEach((k,i)=>{
+            if(i%showEvery!==0&&i!==keys.length-1) return;
+            const parts=k.split('/');
+            const label=parseInt(parts[0])+'/'+parseInt(parts[1]);
+            ctx.fillText(label,padL+step*i,h-4);
+        });
+
+        // Nilai max di atas
+        ctx.fillStyle='rgba(6,182,212,0.6)';
+        ctx.font='700 8px Inter';
+        ctx.textAlign='left';
+        ctx.fillText(maxVal,padL+2,padT-2);
+    }
+
+    // Tooltip on hover/touch
+    (function(){
+        const wrap=document.getElementById('chartWrap');
+        const tip=document.getElementById('chartTooltip');
+        if(!wrap||!tip) return;
+
+        function showTip(cx,cy){
+            if(!chartPoints.length) return;
+            let closest=null,minDist=Infinity;
+            chartPoints.forEach(p=>{
+                const d=Math.abs(p.x-cx);
+                if(d<minDist){minDist=d;closest=p;}
+            });
+            if(!closest||minDist>30){tip.classList.remove('show');return;}
+            const parts=closest.label.split('/');
+            const dateStr=parseInt(parts[0])+'/'+parseInt(parts[1])+'/'+parts[2];
+            tip.innerHTML='<span style="color:#06b6d4">'+closest.val+'</span> dokumen &middot; '+dateStr;
+            tip.classList.add('show');
+            const wrapRect=wrap.getBoundingClientRect();
+            let tx=closest.x-tip.offsetWidth/2;
+            let ty=closest.y-tip.offsetHeight-8;
+            if(tx<0) tx=0;
+            if(tx+tip.offsetWidth>wrapRect.width) tx=wrapRect.width-tip.offsetWidth;
+            if(ty<0) ty=closest.y+10;
+            tip.style.left=tx+'px';
+            tip.style.top=ty+'px';
+        }
+
+        wrap.addEventListener('mousemove',e=>{
+            const r=wrap.getBoundingClientRect();
+            showTip(e.clientX-r.left,e.clientY-r.top);
+        });
+        wrap.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+        wrap.addEventListener('touchstart',e=>{
+            const t=e.touches[0];
+            const r=wrap.getBoundingClientRect();
+            showTip(t.clientX-r.left,t.clientY-r.top);
+        },{passive:true});
+    })();
+
+    // Redraw chart saat resize
+    let resizeTimer;
+    window.addEventListener('resize',()=>{
+        clearTimeout(resizeTimer);
+        resizeTimer=setTimeout(()=>{if(allData.length) drawChart(); else drawEmptyChart();},150);
+    });
+
+    // ═══════════════════════════════════════
+    // LOGIC
+    // ═══════════════════════════════════════
+    function findSkip(h){return h.filter(x=>{const l=x.toLowerCase().trim();return l==='no'||l==='nomor'||l==='nmr'||l==='number'||l.includes('status');});}
+    function findDateKey(h){const l=h.map(x=>x.toLowerCase().trim());return h.find((_,i)=>l[i]==='tgl diterima mailing'||l[i]==='tgl'||l[i]==='tanggal')||null;}
+
+    function fmtDT(v,isD){
+        if(!v)return'-';let c=String(v).trim();if(c===''||c==='-')return'-';
+        if(c.includes('T')){try{const p=c.split('T');if(isD){const d=p[0].split('-');if(d.length===3)return d[2]+'/'+d[1]+'/'+d[0];}else{let t=p[1].substring(0,5);let[h,m]=t.split(':').map(Number);h=(h+7)%24;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}}catch(e){}}
+        if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(c))return c;
+        if(/^\d{1,2}:\d{2}/.test(c))return c;
+        if(/^\d{3,4}$/.test(c)){let p=c.padStart(4,'0');return p.substring(0,2)+':'+p.substring(2,4);}
+        return c;
+    }
+
+    function getStatus(r){
+        const k=Object.keys(r);
+        const pK=k.find(x=>x.toLowerCase().trim().includes('nama penerima')||x.toLowerCase().trim()==='penerima');
+        const wK=k.find(x=>x.toLowerCase().trim()==='waktu diterima user'||x.toLowerCase().trim()==='waktu user');
+        const np=pK?String(r[pK]||'').trim():'';
+        const wu=wK?fmtDT(r[wK],false):'-';
+        return(np!==''&&np!=='-'&&wu!=='-')?'DITERIMA':'PENDING';
+    }
+
+    function mkDate(d,t){const cd=fmtDT(d,true),ct=fmtDT(t,false);if(cd==='-'||ct==='-')return null;const dp=cd.split('/'),tp=ct.split(':');if(dp.length!==3||tp.length<2)return null;return new Date(parseInt(dp[2],10),parseInt(dp[1],10)-1,parseInt(dp[0],10),parseInt(tp[0],10),parseInt(tp[1],10));}
+
+    function dur(tm,wm,tu,wu){const s=mkDate(tm,wm),e=mkDate(tu,wu);if(!s||!e)return'-';let ms=e-s;if(ms<0)return'-';const min=Math.floor(ms/60000),h=Math.floor(min/60),m=min%60;return h>0?h+'j '+m+'m':m+'m';}
+
+    function toSheet(d){if(!d)return'';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';}
+
+    function parseSheetDate(dStr) {
+        if (!dStr || dStr === '-') return null;
+        const parts = dStr.split('/');
+        if (parts.length !== 3) return null;
+        return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+    }
+
+    function calcStats(rows){
+        const dk=findDateKey(allHeaders);let t=rows.length,p=0,d=0;
+        rows.forEach(r=>{if(getStatus(r)==='PENDING')p++;else d++;});
+        anim('total',t);anim('pending',p);anim('diterima',d);
+        // Update hari ini di chart
+        drawChart();
+    }
+
+    function anim(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
+
+    // ═══════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════
+    function renderRows(){
+        if(!allData.length||!allHeaders.length)return;
+        const skip=findSkip(allHeaders);
+        
+        const startVal = document.getElementById('startDate').value;
+        const endVal = document.getElementById('endDate').value;
+        const startDate = startVal ? new Date(startVal) : null;
+        const endDate = endVal ? new Date(endVal) : null;
+        if(startDate) startDate.setHours(0,0,0,0);
+        if(endDate) endDate.setHours(23,59,59,999);
+        
+        const q=document.getElementById('searchInput').value.toLowerCase().trim();
+        const dk=findDateKey(allHeaders);
+
+        const filtered=allData.filter(row=>{
+            if(currentFilter!=='all'&&getStatus(row)!==currentFilter)return false;
+            
+            // Filter range tanggal (Mulai s/d Selesai)
+            if(dk && row[dk]) {
+                const rowDateStr = fmtDT(row[dk], true);
+                const rDate = parseSheetDate(rowDateStr);
+                if(rDate) {
+                    if(startDate && rDate < startDate) return false;
+                    if(endDate && rDate > endDate) return false;
+                } else if (startDate || endDate) {
+                    return false;
+                }
+            } else if (startDate || endDate) {
+                return false;
+            }
+            
+            if(q&&!Object.values(row).some(v=>String(v||'').toLowerCase().includes(q)))return false;
+            return true;
+        });
+        calcStats(filtered);
+        if(!filtered.length){document.getElementById('rows-container').innerHTML='<div class="state-wrap"><i class="ri-filter-off-line"></i><p>Tidak ada data cocok.</p></div>';return;}
+
+        const midK=allHeaders.filter(h=>!skip.includes(h));
+        const tMK=allHeaders.find(k=>{const l=k.toLowerCase().trim();return l==='tgl diterima mailing'||l==='tgl'||l==='tanggal';});
+        const wMK=allHeaders.find(k=>{const l=k.toLowerCase().trim();return l==='waktu diterima mailing';});
+        const tUK=allHeaders.find(k=>{const l=k.toLowerCase().trim();return l.includes('tgl waktu diterima user')||l.includes('tgl waktu');});
+        const wUK=allHeaders.find(k=>{const l=k.toLowerCase().trim();return l==='waktu diterima user'||l==='waktu user';});
+
+        let dCols=[];
+        midK.forEach(k=>{const l=k.toLowerCase();if(l.includes('pengirim')||l.includes('tujuan')||l.includes('deskripsi'))dCols.push('minmax(140px,1.8fr)');else if(l.includes('resi')||l.includes('invoice')||l.includes('penerima'))dCols.push('minmax(110px,1.2fr)');else dCols.push('minmax(90px,1fr)');});
+        dCols.push('minmax(80px,.8fr)');
+
+        let html='';
+        filtered.forEach((r,i)=>{
+            const st=getStatus(r);
+            const sc=st==='DITERIMA'?'st-diterima':'st-pending';
+            const bc=st==='DITERIMA'?'badge-icon-diterima':'badge-icon-pending';
+            const ic=st==='DITERIMA'?'<i class="ri-check-line"></i>':'<i class="ri-close-line"></i>';
+            const dr=dur(tMK?r[tMK]:'',wMK?r[wMK]:'',tUK?r[tUK]:'',wUK?r[wUK]:'');
+
+            html+='<div class="doc-row '+sc+'" style="animation-delay:'+(i*0.008)+'s">';
+            html+='<div class="row-no"><span class="row-no-label">NO</span><span class="row-no-num">'+(i+1)+'</span></div>';
+            html+='<div class="row-middle" style="grid-template-columns:'+dCols.join(' ')+';">';
+
+            midK.forEach(key=>{
+                let val=r[key];
+                const kl=key.toLowerCase();
+                if(kl.includes('tgl')||kl.includes('tanggal')||kl.includes('date'))val=fmtDT(val,true);
+                else if(kl.includes('waktu')||kl.includes('time'))val=fmtDT(val,false);
+                if(val===null||val===undefined||val==='')val='-';
+                val=String(val);
+                const isLong=kl.includes('deskripsi')||kl.includes('tujuan')||kl.includes('pengirim')||kl.includes('invoice')||kl.includes('resi');
+                html+='<div class="row-info-block'+(isLong?'':' text-align-center')+'">';
+                html+='<span class="row-info-label">'+esc(key)+'</span>';
+                html+='<span class="row-info-value">'+esc(val)+'</span></div>';
+            });
+
+            html+='<div class="row-info-block text-align-center" style="border-left:1px dashed rgba(99,102,241,.12);padding-left:6px;">';
+            html+='<span class="row-info-label" style="color:#6366f1;">DURASI</span>';
+            html+='<span class="row-info-value" style="color:#f59e0b;font-weight:600;">'+dr+'</span></div>';
+            html+='</div>';
+
+            html+='<div class="row-right">';
+            html+='<div class="badge-icon '+bc+'">'+ic+'</div>';
+            html+='<div class="mobile-durasi"><i class="ri-timer-line"></i> '+dr+'</div>';
+            html+='</div>';
+            html+='</div>';
+        });
+
+        document.getElementById('rows-container').innerHTML=html;
+    }
+
+    // ═══════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════
+    (function(){
+        const u=getSavedUrl();
+        if(u){
+            document.getElementById('urlInput').value=u;
+            fetchData();
+        } else {
+            drawEmptyChart();
+        }
+    })();
+</script>
+</body>
+</html>
