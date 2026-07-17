@@ -167,7 +167,7 @@
         .rows-list-wrapper{width:100%;overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
         .rows-list{display:flex;flex-direction:column;gap:6px}
 
-        @media(min-width:1024px){
+        @media(min-width:1800px){
             .rows-list{min-width:1800px}
             .doc-row{padding:12px 14px;flex-direction:row}
             .row-no{width:46px;flex-shrink:0}
@@ -309,7 +309,8 @@
             </div>
         </div>
 
-        <div class="url-bar">
+        <!-- Kolom URL disembunyikan agar tampilan bersih dan profesional -->
+        <div class="url-bar" style="display: none;">
             <div class="url-bar-label"><i class="ri-link"></i> URL</div>
             <div class="url-row">
                 <div class="url-input-wrap">
@@ -425,7 +426,6 @@
 
 <script>
     // === !!! TULIS URL APPS SCRIPT ANDA DI SINI UNTUK RILIS PRODUKSI !!! ===
-    // Contoh: const DEFAULT_URL = "https://script.google.com/macros/s/AKfycb.../exec";
     const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbyK6BObhUwxTge6MJBPVybhTl6poFWs0LgjyCUqzdSRrAhj14iLNB45cWIv97X2CK20/exec"; 
 
     let allData=[],allHeaders=[],currentFilter='all',isLoading=false;
@@ -835,10 +835,11 @@
         drawChart();
     }
 
+    // Animasi counter angka statis
     function anim(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
 
     // ═══════════════════════════════════════
-    // RENDER
+    // RENDER BARIS TABEL
     // ═══════════════════════════════════════
     function renderRows(){
         if(!allData.length||!allHeaders.length)return;
@@ -928,13 +929,13 @@
     }
 
     // ═══════════════════════════════════════
-    // INIT
+    // INIT (Inisialisasi & Auto-Load)
     // ═══════════════════════════════════════
     (function(){
         const u=getSavedUrl();
         if(u){
             document.getElementById('urlInput').value=u;
-            fetchData();
+            fetchData(); // Berjalan otomatis saat halaman dibuka!
         } else {
             drawEmptyChart();
         }
