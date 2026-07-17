@@ -385,7 +385,8 @@
                 <i class="ri-search-line"></i>
                 <input type="text" id="searchInput" class="search-input" placeholder="Cari data..." oninput="renderRows()">
             </div>
-            <button class="refresh-btn" id="refreshBtn" onclick="fetchData()"><i class="ri-refresh-line"></i> Refresh</button>
+            <!-- Diubah agar tombol refresh manual memicu pemuatan visual langsung (false) -->
+            <button class="refresh-btn" id="refreshBtn" onclick="fetchData(false)"><i class="ri-refresh-line"></i> Refresh</button>
         </div>
 
         <div class="rows-list-wrapper">
@@ -478,7 +479,6 @@
     // URL
     // ═══════════════════════════════════════
     function getSavedUrl() {
-        // Mendahulukan URL yang disimpan lokal, jika tidak ada, gunakan default_url
         return localStorage.getItem('mr_url') || DEFAULT_URL || '';
     }
     function saveUrl(u){localStorage.setItem('mr_url',u);}
@@ -486,13 +486,13 @@
         const u=document.getElementById('urlInput').value.trim();
         if(!u){showState('warn','URL tidak boleh kosong.','Paste URL Web App dari Google Apps Script.');return;}
         if(!u.startsWith('https://script.google.com/')){showState('error','URL tidak valid.','URL harus dimulai dengan:\n<span class="hl-g">https://script.google.com/macros/s/...</span>');return;}
-        saveUrl(u);fetchData();
+        saveUrl(u);fetchData(false);
     }
 
     // ═══════════════════════════════════════
-    // FETCH
+    // FETCH (Dioptimasi agar mendukung mode silent)
     // ═══════════════════════════════════════
-    async function fetchData(){
+    async function fetchData(silent = false){
         const url=getSavedUrl();
         if(!url){showState('warn','URL belum dikonfigurasi.','Masukkan URL Web App di kolom URL di atas,\nlalu klik <span class="hl-g">Muat</span>.\n\n<span class="hl-d">Cara:\n1. Buka Apps Script\n2. Deploy → New Deployment\n3. Type: Web App\n4. Execute as: Me\n5. Who has access: Anyone\n6. Deploy → Grant Access\n7. Copy URL</span>');return;}
         if(isLoading)return;
@@ -500,7 +500,14 @@
         const btn=document.getElementById('refreshBtn');
         btn.classList.add('loading');
         setConn('wait');
-        showState('loading','Mengambil data...');
+        
+        // Hanya tampilkan layar loading penuh jika TIDAK dalam mode silent
+        if(!silent){
+            showState('loading','Mengambil data...');
+        } else {
+            // Berikan indikator halus di pojok bawah bahwa data sedang disinkronkan di latar belakang
+            document.getElementById('conn-status').innerHTML='<span class="conn-dot wait"></span> Menyinkronkan...';
+        }
 
         try{
             const r=await fetch(url,{method:'GET',redirect:'follow',headers:{'Accept':'application/json'}});
@@ -518,31 +525,43 @@
             }
             if(parsed.length===0){
                 allData=[];allHeaders=[];setConn('on');
-                showState('warn','Sheet kosong.','Sheet terhubung tapi tidak ada data baris.');
+                if(!silent) {
+                    showState('warn','Sheet kosong.','Sheet terhubung tapi tidak ada data baris.');
+                }
                 drawEmptyChart();
             }else{
                 allHeaders=Object.keys(parsed[0]);allData=parsed;setConn('on');renderRows();
+                
+                // Simpan data terbaru ke cache lokal agar pembukaan berikutnya instan!
+                localStorage.setItem('mr_cached_data', JSON.stringify(allData));
+                localStorage.setItem('mr_cached_headers', JSON.stringify(allHeaders));
             }
             document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
             document.getElementById('last-update').innerHTML='<i class="ri-time-line"></i> '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
         }catch(e){
             console.error(e);
-            let msg,detail;
-            if(e.message==='AUTH_REQUIRED'){
-                msg='Perlu otorisasi.';
-                detail='<span class="hl-r">Google meminta otorisasi.</span>\n\n<span class="hl-b">CARA MEMPERBAIKI:</span>\n\n1. Buka script di script.google.com\n2. Deploy → New Deployment\n3. Type: <span class="hl-g">Web App</span>\n4. Execute as: <span class="hl-g">Me</span>\n5. Who has access: <span class="hl-g">Anyone</span>\n6. Deploy → <span class="hl-r">Klik "Grant Access"</span>\n7. Copy URL baru';
+            // Hanya ganti tampilan layar utama jika tidak dalam mode silent atau cache lokal kosong
+            if(!silent || !allData.length) {
+                let msg,detail;
+                if(e.message==='AUTH_REQUIRED'){
+                    msg='Perlu otorisasi.';
+                    detail='<span class="hl-r">Google meminta otorisasi.</span>\n\n<span class="hl-b">CARA MEMPERBAIKI:</span>\n\n1. Buka script di script.google.com\n2. Deploy → New Deployment\n3. Type: <span class="hl-g">Web App</span>\n4. Execute as: <span class="hl-g">Me</span>\n5. Who has access: <span class="hl-g">Anyone</span>\n6. Deploy → <span class="hl-r">Klik "Grant Access"</span>\n7. Copy URL baru';
+                    setConn('off');
+                }else if(e.message.startsWith('SCRIPT_ERROR:')){
+                    msg='Error dari Apps Script.';detail='<span class="hl-r">'+esc(e.message.replace('SCRIPT_ERROR: ',''))+'</span>';setConn('off');
+                }else if(e.message.startsWith('NOT_ARRAY:')){
+                    msg='Format data salah.';detail='Apps Script harus return array JSON.';setConn('off');
+                }else if(e.message.startsWith('INVALID_JSON:')){
+                    msg='Bukan JSON valid.';detail='Response: '+esc(e.message.replace('INVALID_JSON: ','').substring(0,200));setConn('off');
+                }else{
+                    msg='Gagal terhubung.';detail='<span class="hl-d">Kemungkinan:\n1. Tidak ada internet\n2. URL salah\n3. Perlu re-deploy script</span>\n\nURL: <span class="hl-g">'+esc(url)+'</span>';setConn('off');
+                }
+                showState('error',msg,detail);
+                drawEmptyChart();
+            } else {
+                // Jika sync background gagal tapi sudah ada data cache, biarkan data cache tetap tampil
                 setConn('off');
-            }else if(e.message.startsWith('SCRIPT_ERROR:')){
-                msg='Error dari Apps Script.';detail='<span class="hl-r">'+esc(e.message.replace('SCRIPT_ERROR: ',''))+'</span>';setConn('off');
-            }else if(e.message.startsWith('NOT_ARRAY:')){
-                msg='Format data salah.';detail='Apps Script harus return array JSON.';setConn('off');
-            }else if(e.message.startsWith('INVALID_JSON:')){
-                msg='Bukan JSON valid.';detail='Response: '+esc(e.message.replace('INVALID_JSON: ','').substring(0,200));setConn('off');
-            }else{
-                msg='Gagal terhubung.';detail='<span class="hl-d">Kemungkinan:\n1. Tidak ada internet\n2. URL salah\n3. Perlu re-deploy script</span>\n\nURL: <span class="hl-g">'+esc(url)+'</span>';setConn('off');
             }
-            showState('error',msg,detail);
-            drawEmptyChart();
         }finally{isLoading=false;btn.classList.remove('loading');}
     }
 
@@ -831,15 +850,13 @@
         const dk=findDateKey(allHeaders);let t=rows.length,p=0,d=0;
         rows.forEach(r=>{if(getStatus(r)==='PENDING')p++;else d++;});
         anim('total',t);anim('pending',p);anim('diterima',d);
-        // Update hari ini di chart
         drawChart();
     }
 
-    // Animasi counter angka statis
     function anim(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
 
     // ═══════════════════════════════════════
-    // RENDER BARIS TABEL
+    // RENDER
     // ═══════════════════════════════════════
     function renderRows(){
         if(!allData.length||!allHeaders.length)return;
@@ -929,13 +946,35 @@
     }
 
     // ═══════════════════════════════════════
-    // INIT (Inisialisasi & Auto-Load)
+    // INIT (Inisialisasi Caching Instan)
     // ═══════════════════════════════════════
     (function(){
         const u=getSavedUrl();
         if(u){
             document.getElementById('urlInput').value=u;
-            fetchData(); // Berjalan otomatis saat halaman dibuka!
+            
+            // Mencoba membaca data dari Cache Lokal browser terlebih dahulu
+            const cachedData = localStorage.getItem('mr_cached_data');
+            const cachedHeaders = localStorage.getItem('mr_cached_headers');
+            
+            if(cachedData && cachedHeaders) {
+                try {
+                    // Jika data cache ditemukan, langsung muat dalam 0 detik!
+                    allData = JSON.parse(cachedData);
+                    allHeaders = JSON.parse(cachedHeaders);
+                    setConn('on');
+                    renderRows();
+                    document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
+                    
+                    // Ambil data Google Sheets terbaru secara senyap di background tanpa mengganggu user
+                    fetchData(true); 
+                } catch(e) {
+                    fetchData(false);
+                }
+            } else {
+                // Jika tidak ada data cache, baru tampilkan loading penuh
+                fetchData(false);
+            }
         } else {
             drawEmptyChart();
         }
