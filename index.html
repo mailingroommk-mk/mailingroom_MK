@@ -402,15 +402,15 @@
                 <button id="clearDate" class="clear-date-btn" onclick="clearDateFilter()"><i class="ri-close-circle-fill"></i></button>
             </div>
 
-            <!-- BARU: Filter Nomor Urut untuk mempermudah pencarian -->
+            <!-- BARU: Filter Nomor Urut untuk mempermudah pencarian (Menggunakan Debounce) -->
             <div class="no-filter-wrap">
                 <i class="ri-hashtag"></i>
-                <input type="number" id="noFilterInput" class="no-filter-input" placeholder="No. Urut..." oninput="renderRows()">
+                <input type="number" id="noFilterInput" class="no-filter-input" placeholder="No. Urut..." oninput="debouncedRenderRows()">
             </div>
             
             <div class="search-wrap">
                 <i class="ri-search-line"></i>
-                <input type="text" id="searchInput" class="search-input" placeholder="Cari data..." oninput="renderRows()">
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari data..." oninput="debouncedRenderRows()">
             </div>
             <button class="refresh-btn" id="refreshBtn" onclick="fetchData(false)"><i class="ri-refresh-line"></i> Refresh</button>
         </div>
@@ -500,6 +500,18 @@
         document.getElementById('clearDate').style.display = 'none';
         renderRows();
     }
+
+    // DEBOUNCE PENCARIAN: Menghindari overload re-render di HP saat mengetik
+    function debounce(func, delay) {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
+    }
+    const debouncedRenderRows = debounce(renderRows, 250);
 
     // ═══════════════════════════════════════
     // CACHING UTILS
@@ -913,8 +925,12 @@
         midK.forEach(k=>{const l=k.toLowerCase();if(l.includes('pengirim')||l.includes('tujuan')||l.includes('deskripsi'))dCols.push('minmax(140px,1.8fr)');else if(l.includes('resi')||l.includes('invoice')||l.includes('penerima'))dCols.push('minmax(110px,1.2fr)');else dCols.push('minmax(90px,1fr)');});
         dCols.push('minmax(80px,.8fr)');
 
+        // OPTIMASI RENDER HP: Potong rendering langsung maksimal 100 data untuk fluiditas UI
+        const maxRender = 100;
+        const slicedFiltered = filtered.slice(0, maxRender);
+
         let html='';
-        filtered.forEach((r,i)=>{
+        slicedFiltered.forEach((r,i)=>{
             const st=getStatus(r);
             const sc=st==='DITERIMA'?'st-diterima':'st-pending';
             const bc=st==='DITERIMA'?'badge-icon-diterima':'badge-icon-pending';
@@ -955,6 +971,13 @@
             html+='</div>';
             html+='</div>';
         });
+
+        // Berikan info jika pencarian menghasilkan lebih dari batas render agar user tahu
+        if(filtered.length > maxRender) {
+            html += `<div style="text-align:center; padding:16px; color:#64748b; font-size:11px; font-weight:500;">
+                <i class="ri-information-line"></i> Menampilkan ${maxRender} data teratas dari total ${filtered.length} hasil. Sempitkan pencarian untuk hasil lebih spesifik.
+            </div>`;
+        }
 
         document.getElementById('rows-container').innerHTML=html;
     }
