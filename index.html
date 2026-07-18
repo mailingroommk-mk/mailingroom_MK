@@ -33,7 +33,7 @@
         .pwa-btn:hover{background:#059669}
 
         .main{flex:1;padding:16px;padding-bottom:24px;width:100%;display:flex;flex-direction:column;gap:16px}
-        .page-header{display:flex;justify-content:between;align-items:center;flex-wrap:wrap;gap:12px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
         .page-title{font-size:20px;font-weight:700;color:#f8fafc;letter-spacing:-.3px;line-height:1.2}
         .page-subtitle{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;font-weight:500}
 
@@ -122,7 +122,7 @@
         }
         .sm-num.c1{color:#6366f1}.sm-num.c2{color:#f59e0b}.sm-num.c3{color:#10b981}
 
-        /* Sisi Kanan: Grafik Lebar */
+        /* Sisi Kanan: Grafik Lebar (DIPERBARUI JADI 31 HARI) */
         .sm-chart{
             background: #14161d;
             border: 1px solid #1f232e;
@@ -377,9 +377,9 @@
                 </div>
             </div>
 
-            <!-- Sisi Kanan: Grafik Lebar -->
+            <!-- Sisi Kanan: Grafik Lebar (DIPERBARUI JADI 31 HARI) -->
             <div class="sm-chart" id="chartCard">
-                <div class="sm-chart-label"><i class="ri-line-chart-line"></i> Grafik Tren (10 Hari Terakhir)</div>
+                <div class="sm-chart-label"><i class="ri-line-chart-line"></i> Grafik Tren (31 Hari Terakhir)</div>
                 <div class="chart-wrap" id="chartWrap">
                     <canvas id="trendChart"></canvas>
                     <div class="chart-tooltip" id="chartTooltip"></div>
@@ -472,7 +472,10 @@
     // JAM AKTIF
     // ═══════════════════════════════════════
     function updateClock(){
-        document.getElementById('clock').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        const cl = document.getElementById('clock');
+        if(cl) {
+            cl.textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        }
     }
     updateClock();setInterval(updateClock,1000);
 
@@ -501,17 +504,12 @@
         renderRows();
     }
 
-    // DEBOUNCE PENCARIAN: Menghindari overload re-render di HP saat mengetik
-    function debounce(func, delay) {
-        let timer;
-        return function(...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => {
-                func.apply(this, args);
-            }, delay);
-        };
+    // Debounce Timer variable untuk pengetikan responsif anti-lag
+    let debounceTimer;
+    function debouncedRenderRows() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(renderRows, 250);
     }
-    const debouncedRenderRows = debounce(renderRows, 250);
 
     // ═══════════════════════════════════════
     // CACHING UTILS
@@ -568,7 +566,7 @@
             }else{
                 allHeaders=Object.keys(parsed[0]);
                 
-                // BARU: Ikat nomor urut data sheet asli secara permanen pada memori
+                // Ikat nomor urut data sheet asli secara permanen pada memori
                 allData=parsed.map((row, idx) => {
                     const noKey = Object.keys(row).find(k => {
                         const l = k.toLowerCase().trim();
@@ -608,18 +606,19 @@
         }finally{isLoading=false;btn.classList.remove('loading');}
     }
 
-    function setConn(s){const e=document.getElementById('conn-status');if(s==='on'){e.innerHTML='<span class="conn-dot on"></span> Connected';e.style.color='#10b981';}else if(s==='off'){e.innerHTML='<span class="conn-dot off"></span> Offline Mode';e.style.color='#ef4444';}else{e.innerHTML='<span class="conn-dot wait"></span> Sync...';e.style.color='#f59e0b';}}
-    function showState(t,m,d){const c=document.getElementById('rows-container');let i='ri-inbox-line',cl='';if(t==='loading')i='';if(t==='error'){i='ri-error-warning-line';cl=' error';}if(t==='warn'){i='ri-alert-line';cl=' warn';}let h='<div class="state-wrap'+cl+'">';if(t==='loading')h+='<div class="spinner"></div>';else h+='<i class="'+i+'"></i>';h+='<p>'+m+'</p>';if(d)h+='<div class="state-detail">'+d+'</div>';h+='</div>';c.innerHTML=h;}
+    function setConn(s){const e=document.getElementById('conn-status');if(!e)return; if(s==='on'){e.innerHTML='<span class="conn-dot on"></span> Connected';e.style.color='#10b981';}else if(s==='off'){e.innerHTML='<span class="conn-dot off"></span> Offline Mode';e.style.color='#ef4444';}else{e.innerHTML='<span class="conn-dot wait"></span> Sync...';e.style.color='#f59e0b';}}
+    function showState(t,m,d){const c=document.getElementById('rows-container'); if(!c)return; let i='ri-inbox-line',cl='';if(t==='loading')i='';if(t==='error'){i='ri-error-warning-line';cl=' error';}if(t==='warn'){i='ri-alert-line';cl=' warn';}let h='<div class="state-wrap'+cl+'">';if(t==='loading')h+='<div class="spinner"></div>';else h+='<i class="'+i+'"></i>';h+='<p>'+m+'</p>';if(d)h+='<div class="state-detail">'+d+'</div>';h+='</div>';c.innerHTML=h;}
     function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
     // ═══════════════════════════════════════
-    // CHART TREN (10 Hari Terakhir)
+    // CHART TREN (31 Hari Terakhir)
     // ═══════════════════════════════════════
     function getDateCounts(){
         const dk=findDateKey(allHeaders);
         const counts={};
         const now=new Date();
-        for(let i=9;i>=0;i--){
+        // i=30 hingga i=0 menghasilkan rentang tepat 31 hari inklusif hari ini
+        for(let i=30;i>=0;i--){
             const d=new Date(now);
             d.setDate(d.getDate()-i);
             const key=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
@@ -759,16 +758,20 @@
                 ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
                 ctx.fillStyle='#0b0c10';ctx.fill();
             }
-            ctx.fillStyle='#06b6d4';
-            ctx.font='700 8px Inter';
-            ctx.textAlign='center';
-            ctx.fillText(p.val,p.x,p.y-8);
+            // Tampilkan angka statistik di atas titik hanya jika nilainya > 0 agar grafik bersih
+            if(p.val > 0) {
+                ctx.fillStyle='#06b6d4';
+                ctx.font='700 8px Inter';
+                ctx.textAlign='center';
+                ctx.fillText(p.val,p.x,p.y-8);
+            }
         });
 
         ctx.fillStyle='#475569';
         ctx.font='600 8px Inter';
         ctx.textAlign='center';
-        const showEvery=keys.length<=6?1:2;
+        // Tampilkan label sumbu X setiap 5 hari sekali agar tidak saling tumpang tindih
+        const showEvery=keys.length>20?5:(keys.length<=6?1:2);
         keys.forEach((k,i)=>{
             if(i%showEvery!==0&&i!==keys.length-1) return;
             const parts=k.split('/');
@@ -866,7 +869,7 @@
         anim('total',t);anim('pending',p);anim('diterima',d);
         drawChart();
     }
-    function anim(id,target){const el=document.getElementById(id);const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
+    function anim(id,target){const el=document.getElementById(id); if(!el) return; const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
 
     // ═══════════════════════════════════════
     // RENDER TABEL & ATURAN FILTER PINTAR
@@ -988,7 +991,8 @@
     (function(){
         const u=getSavedUrl();
         if(u){
-            document.getElementById('urlInput').value=u;
+            const inputUrl = document.getElementById('urlInput');
+            if(inputUrl) inputUrl.value=u;
             
             // Baca Cache agar database langsung tampil dalam 0 milidetik saat web dibuka
             const cachedData = localStorage.getItem('mr_cached_data_v2');
@@ -1000,7 +1004,8 @@
                     allHeaders = JSON.parse(cachedHeaders);
                     setConn('on');
                     renderRows();
-                    document.getElementById('col-count').innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
+                    const colCount = document.getElementById('col-count');
+                    if(colCount) colCount.innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
                     
                     // Lakukan sync pembaruan data secara senyap di background
                     fetchData(true); 
