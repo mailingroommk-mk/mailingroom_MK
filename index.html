@@ -217,14 +217,25 @@
             .doc-row{padding:12px;flex-direction:column;align-items:stretch}
             .doc-row .row-no{flex-direction:row;gap:8px;width:100%;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1f232e}
             .doc-row .row-no-num{font-size:16px}
+            
+            /* Gunakan grid 2 kolom di mobile secara default */
             .doc-row .row-middle{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px 12px;margin-left:0;width:100%}
+            
+            /* Elemen dengan class .is-long akan memakan 2 kolom penuh */
+            .doc-row .row-info-block.is-long{grid-column:span 2}
+            
             .doc-row .row-info-block.text-align-center{text-align:left!important}
+            
+            /* Sembunyikan garis pembatas durasi bawaan desktop di mobile agar rapi */
+            .doc-row .row-durasi-block {border-left:none !important; padding-left:0 !important; text-align:left !important;}
+            
             .doc-row .row-right{width:100%;margin-left:0;margin-top:8px;padding-top:8px;border-top:1px dashed #1f232e;justify-content:flex-start;gap:10px;align-items:center}
             .doc-row .row-right .badge-icon{width:28px;height:28px;font-size:15px}
             .doc-row .row-right .mobile-durasi{display:flex!important}
         }
         @media(max-width:480px){
-            .doc-row .row-middle{grid-template-columns:1fr!important}
+            /* Di HP Android berapapun, tetap pertahankan 2 kolom agar compact (tidak bertumpuk 1 kolom vertikal) */
+            .doc-row .row-middle{grid-template-columns:1fr 1fr!important}
             .page-title{font-size:18px}
         }
 
@@ -818,6 +829,7 @@
         return c;
     }
 
+    // Penentuan Status
     function getStatus(r){
         const k=Object.keys(r);
         const pK=k.find(x=>x.toLowerCase().trim().includes('nama penerima')||x.toLowerCase().trim()==='penerima');
@@ -911,7 +923,7 @@
 
             html+='<div class="doc-row '+sc+'" style="animation-delay:'+(i*0.008)+'s">';
             
-            // BARU: Nomor urut permanen sesuai urutan database asli
+            // Nomor urut permanen sesuai urutan database asli
             html+='<div class="row-no"><span class="row-no-label">NO</span><span class="row-no-num">'+r._permanentNo+'</span></div>';
             html+='<div class="row-middle" style="grid-template-columns:'+dCols.join(' ')+';">';
 
@@ -922,13 +934,17 @@
                 else if(kl.includes('waktu')||kl.includes('time'))val=fmtDT(val,false);
                 if(val===null||val===undefined||val==='')val='-';
                 val=String(val);
+                
+                // Tambahkan tanda jika data tersebut berukuran panjang agar bisa mengambil span 2 di mobile
                 const isLong=kl.includes('deskripsi')||kl.includes('tujuan')||kl.includes('pengirim')||kl.includes('invoice')||kl.includes('resi');
-                html+='<div class="row-info-block'+(isLong?'':' text-align-center')+'">';
+                
+                html+='<div class="row-info-block'+(isLong?' is-long':'')+(isLong?'':' text-align-center')+'">';
                 html+='<span class="row-info-label">'+esc(key)+'</span>';
                 html+='<span class="row-info-value">'+esc(val)+'</span></div>';
             });
 
-            html+='<div class="row-info-block text-align-center" style="border-left:1px dashed rgba(99,102,241,.12);padding-left:6px;">';
+            // Tambahkan class khusus row-durasi-block agar custom styling CSS mobile bisa diterapkan
+            html+='<div class="row-info-block row-durasi-block text-align-center" style="border-left:1px dashed rgba(99,102,241,.12);padding-left:6px;">';
             html+='<span class="row-info-label" style="color:#6366f1;">DURASI</span>';
             html+='<span class="row-info-value" style="color:#f59e0b;font-weight:600;">'+dr+'</span></div>';
             html+='</div>';
