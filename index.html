@@ -37,7 +37,6 @@
         .page-title{font-size:20px;font-weight:700;color:#f8fafc;letter-spacing:-.3px;line-height:1.2}
         .page-subtitle{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;font-weight:500}
 
-        /* URL-bar disembunyikan agar tampilan bersih dan profesional */
         .url-bar{background:#14161d;border:1px solid #1f232e;border-radius:10px;padding:12px;gap:10px;display:flex;flex-wrap:wrap;align-items:center}
         .url-bar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6366f1;display:flex;align-items:center;gap:5px;white-space:nowrap}
         .url-row{flex:1;display:flex;gap:8px;min-width:0;width:100%}
@@ -122,7 +121,7 @@
         }
         .sm-num.c1{color:#6366f1}.sm-num.c2{color:#f59e0b}.sm-num.c3{color:#10b981}
 
-        /* Sisi Kanan: Grafik Lebar (DIPERBARUI JADI 31 HARI) */
+        /* Sisi Kanan: Grafik Lebar */
         .sm-chart{
             background: #14161d;
             border: 1px solid #1f232e;
@@ -157,13 +156,18 @@
         .clear-date-btn{background:transparent;border:none;color:#64748b;cursor:pointer;font-size:13px;margin-left:4px;display:none;align-items:center;padding:0}
         .clear-date-btn:active{color:#ef4444}
 
-        /* Filter khusus No. Urut */
+        /* Filter khusus No. Urut & Select Limit */
         .no-filter-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 8px;height:34px;width:100px}
         .no-filter-wrap i{color:#64748b;font-size:13px;margin-right:4px}
         .no-filter-input{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;width:100%;outline:none}
         .no-filter-input::placeholder{color:#475569}
         .no-filter-input::-webkit-outer-spin-button,
         .no-filter-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0 }
+
+        .limit-select-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 8px;height:34px}
+        .limit-select-wrap i{color:#64748b;font-size:13px;margin-right:4px}
+        .limit-select{background:transparent;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;outline:none;cursor:pointer}
+        .limit-select option{background:#14161d;color:#e2e8f0}
 
         .search-wrap{display:flex;align-items:center;background:#14161d;border:1px solid #1f232e;border-radius:6px;padding:0 10px;height:34px;flex:1;min-width:140px}
         .search-wrap i{color:#64748b;font-size:14px;margin-right:6px;flex-shrink:0}
@@ -177,7 +181,6 @@
         .rows-list-wrapper{width:100%;overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
         .rows-list{display:flex;flex-direction:column;gap:6px}
 
-        /* DIOPTIMALKAN: Batas breakpoint diturunkan ke 900px agar laptop standar mendapatkan tampilan horizontal yang rapi */
         @media(min-width:900px){
             .rows-list{min-width:1800px}
             .doc-row{padding:12px 14px;flex-direction:row}
@@ -218,15 +221,10 @@
             .doc-row .row-no{flex-direction:row;gap:8px;width:100%;align-items:baseline;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #1f232e}
             .doc-row .row-no-num{font-size:16px}
             
-            /* Gunakan grid 2 kolom di mobile secara default */
             .doc-row .row-middle{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px 12px;margin-left:0;width:100%}
-            
-            /* Elemen dengan class .is-long akan memakan 2 kolom penuh */
             .doc-row .row-info-block.is-long{grid-column:span 2}
-            
             .doc-row .row-info-block.text-align-center{text-align:left!important}
             
-            /* Sembunyikan garis pembatas durasi bawaan desktop di mobile agar rapi */
             .doc-row .row-durasi-block {border-left:none !important; padding-left:0 !important; text-align:left !important;}
             
             .doc-row .row-right{width:100%;margin-left:0;margin-top:8px;padding-top:8px;border-top:1px dashed #1f232e;justify-content:flex-start;gap:10px;align-items:center}
@@ -234,7 +232,6 @@
             .doc-row .row-right .mobile-durasi{display:flex!important}
         }
         @media(max-width:480px){
-            /* Di HP Android berapapun, tetap pertahankan 2 kolom agar compact (tidak bertumpuk 1 kolom vertikal) */
             .doc-row .row-middle{grid-template-columns:1fr 1fr!important}
             .page-title{font-size:18px}
         }
@@ -330,7 +327,6 @@
             </div>
         </div>
 
-        <!-- Kolom URL disembunyikan menggunakan style display none untuk tampilan bersih -->
         <div class="url-bar" style="display: none;">
             <div class="url-bar-label"><i class="ri-link"></i> URL</div>
             <div class="url-row">
@@ -344,7 +340,6 @@
         </div>
 
         <div class="dashboard-stats-grid">
-            <!-- Sisi Kiri: Panel Kartu Mini Vertikal -->
             <div class="metrics-sidebar">
                 <div class="metric-mini-card">
                     <div class="metric-info">
@@ -377,7 +372,6 @@
                 </div>
             </div>
 
-            <!-- Sisi Kanan: Grafik Lebar (DIPERBARUI JADI 31 HARI) -->
             <div class="sm-chart" id="chartCard">
                 <div class="sm-chart-label"><i class="ri-line-chart-line"></i> Grafik Tren (31 Hari Terakhir)</div>
                 <div class="chart-wrap" id="chartWrap">
@@ -402,10 +396,21 @@
                 <button id="clearDate" class="clear-date-btn" onclick="clearDateFilter()"><i class="ri-close-circle-fill"></i></button>
             </div>
 
-            <!-- BARU: Filter Nomor Urut untuk mempermudah pencarian (Menggunakan Debounce) -->
             <div class="no-filter-wrap">
                 <i class="ri-hashtag"></i>
                 <input type="number" id="noFilterInput" class="no-filter-input" placeholder="No. Urut..." oninput="debouncedRenderRows()">
+            </div>
+
+            <!-- Pemilih Batas Tampilan Data (Pilihan 200 sebagai default) -->
+            <div class="limit-select-wrap">
+                <i class="ri-list-check-2"></i>
+                <select id="limitSelect" class="limit-select" onchange="renderRows()">
+                    <option value="50">50 Baris</option>
+                    <option value="100">100 Baris</option>
+                    <option value="200" selected>200 Baris</option>
+                    <option value="500">500 Baris</option>
+                    <option value="all">Semua Data</option>
+                </select>
             </div>
             
             <div class="search-wrap">
@@ -452,13 +457,11 @@
     </div>
 
 <script>
-    // === !!! TULIS URL APPS SCRIPT ANDA DI SINI UNTUK RILIS PRODUKSI !!! ===
     const DEFAULT_URL = "https://script.google.com/macros/s/AKfycbyK6BObhUwxTge6MJBPVybhTl6poFWs0LgjyCUqzdSRrAhj14iLNB45cWIv97X2CK20/exec"; 
 
     let allData=[],allHeaders=[],currentFilter='all',isLoading=false;
     let chartPoints=[]; 
 
-    // PWA Modal Trigger Toggle
     function toggleModal(e) {
         const modal = document.getElementById('pwaModal');
         if (modal.style.display === 'flex') {
@@ -468,9 +471,6 @@
         }
     }
 
-    // ═══════════════════════════════════════
-    // JAM AKTIF
-    // ═══════════════════════════════════════
     function updateClock(){
         const cl = document.getElementById('clock');
         if(cl) {
@@ -479,9 +479,6 @@
     }
     updateClock();setInterval(updateClock,1000);
 
-    // ═══════════════════════════════════════
-    // FILTER UTAMA
-    // ═══════════════════════════════════════
     document.querySelectorAll('.filter-btn').forEach(b=>{
         b.addEventListener('click',()=>{
             document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
@@ -504,16 +501,12 @@
         renderRows();
     }
 
-    // Debounce Timer variable untuk pengetikan responsif anti-lag
     let debounceTimer;
     function debouncedRenderRows() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(renderRows, 250);
+        debounceTimer = setTimeout(renderRows, 200);
     }
 
-    // ═══════════════════════════════════════
-    // CACHING UTILS
-    // ═══════════════════════════════════════
     function getSavedUrl() {
         return localStorage.getItem('mr_url') || DEFAULT_URL || '';
     }
@@ -524,9 +517,6 @@
         saveUrl(u);fetchData(false);
     }
 
-    // ═══════════════════════════════════════
-    // FETCH DATA DENGAN AUTO BACKGROUND SYNC (Anti-Lemot)
-    // ═══════════════════════════════════════
     async function fetchData(silent = false){
         const url=getSavedUrl();
         if(!url){showState('warn','URL belum dikonfigurasi.','Lakukan setup Web App URL pada Apps Script.');return;}
@@ -536,7 +526,6 @@
         btn.classList.add('loading');
         setConn('wait');
         
-        // Mode senyap tidak merusak user experience dengan spinner
         if(!silent){
             showState('loading','Mengambil data terbaru...');
         } else {
@@ -566,7 +555,6 @@
             }else{
                 allHeaders=Object.keys(parsed[0]);
                 
-                // Ikat nomor urut data sheet asli secara permanen pada memori
                 allData=parsed.map((row, idx) => {
                     const noKey = Object.keys(row).find(k => {
                         const l = k.toLowerCase().trim();
@@ -579,7 +567,6 @@
                 setConn('on');
                 renderRows();
                 
-                // Update Cache Lokal
                 localStorage.setItem('mr_cached_data_v2', JSON.stringify(allData));
                 localStorage.setItem('mr_cached_headers_v2', JSON.stringify(allHeaders));
             }
@@ -610,14 +597,10 @@
     function showState(t,m,d){const c=document.getElementById('rows-container'); if(!c)return; let i='ri-inbox-line',cl='';if(t==='loading')i='';if(t==='error'){i='ri-error-warning-line';cl=' error';}if(t==='warn'){i='ri-alert-line';cl=' warn';}let h='<div class="state-wrap'+cl+'">';if(t==='loading')h+='<div class="spinner"></div>';else h+='<i class="'+i+'"></i>';h+='<p>'+m+'</p>';if(d)h+='<div class="state-detail">'+d+'</div>';h+='</div>';c.innerHTML=h;}
     function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-    // ═══════════════════════════════════════
-    // CHART TREN (31 Hari Terakhir)
-    // ═══════════════════════════════════════
     function getDateCounts(){
         const dk=findDateKey(allHeaders);
         const counts={};
         const now=new Date();
-        // i=30 hingga i=0 menghasilkan rentang tepat 31 hari inklusif hari ini
         for(let i=30;i>=0;i--){
             const d=new Date(now);
             d.setDate(d.getDate()-i);
@@ -758,7 +741,6 @@
                 ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
                 ctx.fillStyle='#0b0c10';ctx.fill();
             }
-            // Tampilkan angka statistik di atas titik hanya jika nilainya > 0 agar grafik bersih
             if(p.val > 0) {
                 ctx.fillStyle='#06b6d4';
                 ctx.font='700 8px Inter';
@@ -770,7 +752,6 @@
         ctx.fillStyle='#475569';
         ctx.font='600 8px Inter';
         ctx.textAlign='center';
-        // Tampilkan label sumbu X setiap 5 hari sekali agar tidak saling tumpang tindih
         const showEvery=keys.length>20?5:(keys.length<=6?1:2);
         keys.forEach((k,i)=>{
             if(i%showEvery!==0&&i!==keys.length-1) return;
@@ -785,7 +766,6 @@
         ctx.fillText(maxVal,padL+2,padT-2);
     }
 
-    // Tooltip Tracker
     (function(){
         const wrap=document.getElementById('chartWrap');
         const tip=document.getElementById('chartTooltip');
@@ -829,9 +809,6 @@
         resizeTimer=setTimeout(()=>{if(allData.length) drawChart(); else drawEmptyChart();},150);
     });
 
-    // ═══════════════════════════════════════
-    // PARSING LOGIC & HELPERS
-    // ═══════════════════════════════════════
     function findSkip(h){return h.filter(x=>{const l=x.toLowerCase().trim();return l==='no'||l==='nomor'||l==='nmr'||l==='number'||l.includes('status');});}
     function findDateKey(h){const l=h.map(x=>x.toLowerCase().trim());return h.find((_,i)=>l[i]==='tgl diterima mailing'||l[i]==='tgl'||l[i]==='tanggal')||null;}
 
@@ -844,7 +821,6 @@
         return c;
     }
 
-    // Penentuan Status
     function getStatus(r){
         const k=Object.keys(r);
         const pK=k.find(x=>x.toLowerCase().trim().includes('nama penerima')||x.toLowerCase().trim()==='penerima');
@@ -871,9 +847,6 @@
     }
     function anim(id,target){const el=document.getElementById(id); if(!el) return; const cur=parseInt(el.textContent)||0;if(cur===target){el.textContent=target;return;}const st=performance.now();(function step(now){const p=Math.min((now-st)/300,1);el.textContent=Math.round(cur+(target-cur)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(st);}
 
-    // ═══════════════════════════════════════
-    // RENDER TABEL & ATURAN FILTER PINTAR
-    // ═══════════════════════════════════════
     function renderRows(){
         if(!allData.length||!allHeaders.length)return;
         const skip=findSkip(allHeaders);
@@ -893,10 +866,8 @@
         const filtered=allData.filter(row=>{
             if(currentFilter!=='all'&&getStatus(row)!==currentFilter)return false;
             
-            // 1. FILTER NOMOR URUT PERMANEN (PRESISI)
             if(noQuery && String(row._permanentNo) !== noQuery) return false;
 
-            // 2. Filter Tanggal
             if(dk && row[dk]) {
                 const rowDateStr = fmtDT(row[dk], true);
                 const rDate = parseSheetDate(rowDateStr);
@@ -910,7 +881,6 @@
                 return false;
             }
             
-            // 3. Filter Kata Kunci Global
             if(q&&!Object.values(row).some(v=>String(v||'').toLowerCase().includes(q)))return false;
             return true;
         });
@@ -928,8 +898,9 @@
         midK.forEach(k=>{const l=k.toLowerCase();if(l.includes('pengirim')||l.includes('tujuan')||l.includes('deskripsi'))dCols.push('minmax(140px,1.8fr)');else if(l.includes('resi')||l.includes('invoice')||l.includes('penerima'))dCols.push('minmax(110px,1.2fr)');else dCols.push('minmax(90px,1fr)');});
         dCols.push('minmax(80px,.8fr)');
 
-        // OPTIMASI RENDER HP: Potong rendering langsung maksimal 100 data untuk fluiditas UI
-        const maxRender = 100;
+        // Ambil nilai batas tampilan dari pilihan dropdown pengguna (Default 200)
+        const limitVal = document.getElementById('limitSelect').value;
+        const maxRender = limitVal === 'all' ? filtered.length : parseInt(limitVal, 10);
         const slicedFiltered = filtered.slice(0, maxRender);
 
         let html='';
@@ -940,9 +911,11 @@
             const ic=st==='DITERIMA'?'<i class="ri-check-line"></i>':'<i class="ri-close-line"></i>';
             const dr=dur(tMK?r[tMK]:'',wMK?r[wMK]:'',tUK?r[tUK]:'',wUK?r[wUK]:'');
 
-            html+='<div class="doc-row '+sc+'" style="animation-delay:'+(i*0.008)+'s">';
+            // Optimasi delay animasi CSS untuk render cepat (maksimum 25 baris awal)
+            const animDelay = (i < 25 ? i * 0.008 : 0);
+
+            html+='<div class="doc-row '+sc+'" style="animation-delay:'+animDelay+'s">';
             
-            // Nomor urut permanen sesuai urutan database asli
             html+='<div class="row-no"><span class="row-no-label">NO</span><span class="row-no-num">'+r._permanentNo+'</span></div>';
             html+='<div class="row-middle" style="grid-template-columns:'+dCols.join(' ')+';">';
 
@@ -954,7 +927,6 @@
                 if(val===null||val===undefined||val==='')val='-';
                 val=String(val);
                 
-                // Tambahkan tanda jika data tersebut berukuran panjang agar bisa mengambil span 2 di mobile
                 const isLong=kl.includes('deskripsi')||kl.includes('tujuan')||kl.includes('pengirim')||kl.includes('invoice')||kl.includes('resi');
                 
                 html+='<div class="row-info-block'+(isLong?' is-long':'')+(isLong?'':' text-align-center')+'">';
@@ -962,7 +934,6 @@
                 html+='<span class="row-info-value">'+esc(val)+'</span></div>';
             });
 
-            // Tambahkan class khusus row-durasi-block agar custom styling CSS mobile bisa diterapkan
             html+='<div class="row-info-block row-durasi-block text-align-center" style="border-left:1px dashed rgba(99,102,241,.12);padding-left:6px;">';
             html+='<span class="row-info-label" style="color:#6366f1;">DURASI</span>';
             html+='<span class="row-info-value" style="color:#f59e0b;font-weight:600;">'+dr+'</span></div>';
@@ -975,26 +946,26 @@
             html+='</div>';
         });
 
-        // Berikan info jika pencarian menghasilkan lebih dari batas render agar user tahu
+        // Informasi Jumlah Data Ter-render
         if(filtered.length > maxRender) {
             html += `<div style="text-align:center; padding:16px; color:#64748b; font-size:11px; font-weight:500;">
-                <i class="ri-information-line"></i> Menampilkan ${maxRender} data teratas dari total ${filtered.length} hasil. Sempitkan pencarian untuk hasil lebih spesifik.
+                <i class="ri-information-line"></i> Menampilkan ${maxRender} data teratas dari total ${filtered.length} hasil. Ubah filter limit pada toolbar untuk melihat lebih banyak.
+            </div>`;
+        } else {
+            html += `<div style="text-align:center; padding:16px; color:#64748b; font-size:11px; font-weight:500;">
+                <i class="ri-check-line"></i> Menampilkan semua ${filtered.length} hasil data.
             </div>`;
         }
 
         document.getElementById('rows-container').innerHTML=html;
     }
 
-    // ═══════════════════════════════════════
-    // SINKRONISASI CACHE INSTAN (0 Detik Terbuka)
-    // ═══════════════════════════════════════
     (function(){
         const u=getSavedUrl();
         if(u){
             const inputUrl = document.getElementById('urlInput');
             if(inputUrl) inputUrl.value=u;
             
-            // Baca Cache agar database langsung tampil dalam 0 milidetik saat web dibuka
             const cachedData = localStorage.getItem('mr_cached_data_v2');
             const cachedHeaders = localStorage.getItem('mr_cached_headers_v2');
             
@@ -1007,7 +978,6 @@
                     const colCount = document.getElementById('col-count');
                     if(colCount) colCount.innerHTML='<i class="ri-table-line"></i> '+allHeaders.length+' kolom';
                     
-                    // Lakukan sync pembaruan data secara senyap di background
                     fetchData(true); 
                 } catch(e) {
                     fetchData(false);
